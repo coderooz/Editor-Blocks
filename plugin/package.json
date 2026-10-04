@@ -1,0 +1,61 @@
+{
+  "name": "@coderooz/tiptap-editor",
+  "version": "1.0.0",
+  "description": "Ready-to-use TipTap editor components for Next.js projects",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --external react,react-dom,@tiptap/*",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
+  },
+  "peerDependencies": {
+    "next": ">=14.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "dependencies": {
+    "@tiptap/extension-bold": "^3.0.0",
+    "@tiptap/extension-bullet-list": "^3.0.0",
+    "@tiptap/extension-code": "^3.0.0",
+    "@tiptap/extension-document": "^3.0.0",
+    "@tiptap/extension-heading": "^3.0.0",
+    "@tiptap/extension-italic": "^3.0.0",
+    "@tiptap/extension-link": "^3.0.0",
+    "@tiptap/extension-list": "^3.0.0",
+    "@tiptap/extension-paragraph": "^3.0.0",
+    "@tiptap/extension-placeholder": "^3.0.0",
+    "@tiptap/extension-strike": "^3.0.0",
+    "@tiptap/extension-text": "^3.0.0",
+    "@tiptap/extension-underline": "^3.0.0",
+    "@tiptap/pm": "^3.0.0",
+    "@tiptap/react": "^3.0.0",
+    "@tiptap/starter-kit": "^3.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "tiptap",
+    "editor",
+    "rich-text",
+    "nextjs",
+    "react",
+    "wysiwyg"
+  ],
+  "author": "Ranit Saha (Coderooz)",
+  "license": "MIT"
+}

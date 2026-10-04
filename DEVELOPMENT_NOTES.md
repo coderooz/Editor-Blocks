@@ -29,7 +29,7 @@ TipTap-Editor is a **professional, production-ready TipTap rich-text editor show
 - **Editor:** TipTap v3.10.1
 - **Icons:** Lucide React 0.548.0
 - **Syntax Highlighting:** Lowlight
-- **Collaboration Ready:** Yjs + y-protocols (dependencies installed)
+- **Collaboration Ready:** Yjs + y-protocols (dependencies removed from runtime; planned for a future module)
 
 ### Key Architectural Patterns
 

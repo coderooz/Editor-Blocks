@@ -1,3 +1,11 @@
+/**
+ * @file /components/ThemeToggle.tsx
+ * @description Light/dark theme switch that persists the choice to localStorage and toggles the dark class on the document element.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint The mounted guard is required — reading localStorage or matchMedia during render would break hydration. Keep theme state in localStorage and the html.dark class in sync.
+ * @dependencies Requires react (useState, useEffect), lucide-react (Moon, Sun).
+ */
+
 "use client";
 
 import { useEffect, useState } from "react";

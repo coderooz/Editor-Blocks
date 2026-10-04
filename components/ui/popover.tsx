@@ -1,3 +1,11 @@
+/**
+ * @file /components/ui/popover.tsx
+ * @description shadcn/ui Popover primitives wrapping Radix Popover for anchored overlay content.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint Currently unused. As with DialogTrigger, use asChild on PopoverTrigger when the trigger is a custom button element.
+ * @dependencies Requires @radix-ui/react-popover, cn().
+ */
+
 "use client"
 
 import * as React from "react"

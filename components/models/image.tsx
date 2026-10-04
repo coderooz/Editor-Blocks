@@ -1,143 +1,166 @@
-/** @format */
+/**
+ * @file /components/models/image.tsx
+ * @description Image insert dialog offering URL entry and local file upload, with width and height inputs.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint Local uploads are inserted as blob: object URLs — they are visible for the current
+ *          session only and are gone after a reload. The old "My Assets" tab was removed: it
+ *          fetched /api/private/asset, which does not exist in this project, so it 404'd and
+ *          always rendered "No assets found." Reintroduce an asset library together with a real
+ *          endpoint rather than shipping a tab that cannot work.
+ * @ai-agent No console output in this file — the quality gate forbids it. Failures surface as
+ *            an inline `role="alert"` tied to the field through aria-describedby.
+ * @ai-agent The dialog closes after a successful insert so Radix's focus trap releases and
+ *            focus can return to the editor.
+ * @dependencies Requires <Tabs />, <Input />, <Button />, cn(), type Editor, DialogClose.
+ */
+
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils"; // optional helper if you use className utils
+import { DialogClose } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
-interface ImageAsset {
-  id: string;
-  url: string;
-  name?: string;
-}
+/** Fallback box size used when the width/height inputs are cleared or invalid. */
+const DEFAULT_SIZE = 300;
 
 export default function ImageModel({ editor }: { editor: Editor }) {
   const [activeTab, setActiveTab] = useState("url");
 
-  // Basic Inputs
-  const [image, setImage] = useState<string>("");
-  const [width, setWidth] = useState<number>(300);
-  const [height, setHeight] = useState<number>(300);
+  // From URL
+  const [image, setImage] = useState("");
+  const [width, setWidth] = useState<number>(DEFAULT_SIZE);
+  const [height, setHeight] = useState<number>(DEFAULT_SIZE);
 
-  // File Upload
+  // File upload
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const closeRef = useRef<HTMLButtonElement>(null);
 
-  // Asset List
-  const [assets, setAssets] = useState<ImageAsset[]>([]);
-  const [loadingAssets, setLoadingAssets] = useState(false);
+  /** A cleared number input yields 0, which would render an invisible image. */
+  const safeSize = (value: number) => (Number.isFinite(value) && value > 0 ? value : DEFAULT_SIZE);
 
-  // --- Fetch existing assets ---
-  useEffect(() => {
-    if (activeTab !== "assets") return;
-    const fetchAssets = async () => {
-      try {
-        setLoadingAssets(true);
-        const res = await fetch("/api/private/asset?type=image");
-        const data = await res.json();
-        setAssets(data || []);
-      } catch (err) {
-        console.error("Error fetching assets:", err);
-      } finally {
-        setLoadingAssets(false);
-      }
-    };
-    fetchAssets();
-  }, [activeTab]);
+  const insertImage = (src: string): boolean =>
+    editor
+      .chain()
+      .focus()
+      .setImage({ src, width: safeSize(width), height: safeSize(height) })
+      .run();
 
-  // --- Insert image to editor ---
-  const insertImage = useCallback(
-    (src: string) => {
-      if (!src) return;
-      editor
-        .chain()
-        .focus()
-        .setImage({
-          src,
-          width,
-          height,
-        })
-        .run();
-    },
-    [editor, width, height]
-  );
+  const finish = (ok: boolean, failureMessage: string) => {
+    if (!ok) {
+      setError(failureMessage);
+      return false;
+    }
+    setError("");
+    closeRef.current?.click();
+    return true;
+  };
 
-  // --- Handle URL Insert ---
   const handleInsertFromUrl = () => {
-    if (!image.trim()) return;
-    insertImage(image);
+    const value = image.trim();
+    if (!value) {
+      setError("Enter an image URL to continue.");
+      return;
+    }
+
+    let parsed: URL;
+    try {
+      parsed = new URL(value);
+    } catch {
+      setError("That is not a valid URL.");
+      return;
+    }
+
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:" && parsed.protocol !== "blob:") {
+      setError("Only http, https and blob image URLs are supported.");
+      return;
+    }
+
+    if (!finish(insertImage(value), "The image could not be inserted.")) return;
     setImage("");
   };
 
-  // --- Handle File Upload (Mock Example) ---
-  const handleUpload = async () => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const localPreviewUrl = URL.createObjectURL(file);
-      insertImage(localPreviewUrl);
-      //   const formData = new FormData();
-      //   formData.append("file", file);
-
-      //   const res = await fetch("/api/private/asset/upload", {
-      //     method: "POST",
-      //     body: formData,
-      //   });
-      //   const data = await res.json();
-      //   if (data?.url) {
-      //     insertImage(data.url);
-      //   }
-    } catch (err) {
-      console.error("Upload failed:", err);
-    } finally {
-      setUploading(false);
-      setFile(null);
+  const handleUpload = () => {
+    if (!file) {
+      setError("Choose an image file first.");
+      return;
     }
-  };
+    if (!file.type.startsWith("image/")) {
+      setError(`"${file.name}" is not an image.`);
+      setFile(null);
+      return;
+    }
 
-  // --- Handle selecting existing asset ---
-  const handleSelectAsset = (url: string) => {
-    insertImage(url);
+    let localPreviewUrl: string;
+    try {
+      localPreviewUrl = URL.createObjectURL(file);
+    } catch {
+      setError("That file could not be opened as an image.");
+      setFile(null);
+      return;
+    }
+
+    if (!finish(insertImage(localPreviewUrl), "The image could not be inserted.")) {
+      URL.revokeObjectURL(localPreviewUrl);
+      return;
+    }
+    setFile(null);
   };
 
   return (
     <div className='space-y-4 py-2'>
       <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-        <TabsList className='grid grid-cols-3 w-full'>
+        <TabsList className='grid grid-cols-2 w-full'>
           <TabsTrigger value='url'>From URL</TabsTrigger>
           <TabsTrigger value='upload'>Upload</TabsTrigger>
-          <TabsTrigger value='assets'>My Assets</TabsTrigger>
         </TabsList>
 
         {/* --- From URL --- */}
         <TabsContent value='url' className='mt-4 space-y-4'>
           <div className='space-y-2'>
-            <label className='text-sm font-medium'>Image URL</label>
+            <label htmlFor='image-url' className='text-sm font-medium'>
+              Image URL
+            </label>
             <Input
+              id='image-url'
               type='url'
               value={image}
-              onChange={(e) => setImage(e.target.value)}
+              onChange={(e) => {
+                setImage(e.target.value);
+                if (error) setError("");
+              }}
               placeholder='https://example.com/image.png'
+              aria-invalid={error && activeTab === "url" ? true : undefined}
+              aria-describedby={error && activeTab === "url" ? "image-error" : undefined}
             />
           </div>
 
           <div className='flex gap-3'>
             <div className='flex flex-col'>
-              <label className='text-xs text-muted-foreground'>Width</label>
+              <label htmlFor='image-width' className='text-xs text-muted-foreground'>
+                Width
+              </label>
               <Input
+                id='image-width'
                 type='number'
+                min={1}
                 value={width}
                 onChange={(e) => setWidth(Number(e.target.value))}
                 className='w-20'
               />
             </div>
             <div className='flex flex-col'>
-              <label className='text-xs text-muted-foreground'>Height</label>
+              <label htmlFor='image-height' className='text-xs text-muted-foreground'>
+                Height
+              </label>
               <Input
+                id='image-height'
                 type='number'
+                min={1}
                 value={height}
                 onChange={(e) => setHeight(Number(e.target.value))}
                 className='w-20'
@@ -145,7 +168,7 @@ export default function ImageModel({ editor }: { editor: Editor }) {
             </div>
           </div>
 
-          <Button onClick={handleInsertFromUrl} className='w-full'>
+          <Button type='button' onClick={handleInsertFromUrl} className='w-full'>
             Insert Image
           </Button>
         </TabsContent>
@@ -153,76 +176,67 @@ export default function ImageModel({ editor }: { editor: Editor }) {
         {/* --- Upload Image --- */}
         <TabsContent value='upload' className='mt-4 space-y-4'>
           <div className='space-y-2'>
-            <label className='text-sm font-medium'>Select File</label>
+            <label htmlFor='image-file' className='text-sm font-medium'>
+              Select File
+            </label>
             <Input
+              id='image-file'
               type='file'
               accept='image/*'
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={(e) => {
+                setFile(e.target.files?.[0] ?? null);
+                if (error) setError("");
+              }}
+              aria-invalid={error && activeTab === "upload" ? true : undefined}
+              aria-describedby={error && activeTab === "upload" ? "image-error" : undefined}
             />
+            <p className='text-xs text-muted-foreground'>
+              Uploaded images are embedded for this session only.
+            </p>
           </div>
+
           <div className='flex gap-3'>
             <div className='flex flex-col'>
-              <label className='text-xs text-muted-foreground'>Width</label>
+              <label htmlFor='upload-width' className='text-xs text-muted-foreground'>
+                Width
+              </label>
               <Input
+                id='upload-width'
                 type='number'
+                min={1}
                 value={width}
                 onChange={(e) => setWidth(Number(e.target.value))}
                 className='w-20'
               />
             </div>
             <div className='flex flex-col'>
-              <label className='text-xs text-muted-foreground'>Height</label>
+              <label htmlFor='upload-height' className='text-xs text-muted-foreground'>
+                Height
+              </label>
               <Input
+                id='upload-height'
                 type='number'
+                min={1}
                 value={height}
                 onChange={(e) => setHeight(Number(e.target.value))}
                 className='w-20'
               />
             </div>
           </div>
-          <Button
-            onClick={handleUpload}
-            disabled={uploading}
-            className='w-full'
-          >
-            {uploading ? "Uploading..." : "Upload & Insert"}
+
+          <Button type='button' onClick={handleUpload} className='w-full'>
+            Upload &amp; Insert
           </Button>
         </TabsContent>
-
-        {/* --- My Assets --- */}
-        <TabsContent value='assets' className='mt-4 space-y-4'>
-          {loadingAssets ? (
-            <p className='text-sm text-muted-foreground text-center'>
-              Loading images...
-            </p>
-          ) : assets.length > 0 ? (
-            <div className='grid grid-cols-3 gap-3 max-h-72 overflow-y-auto p-1'>
-              {assets.map((asset) => (
-                <div
-                  key={asset.id}
-                  className={cn(
-                    "relative group cursor-pointer border rounded-md overflow-hidden hover:ring-2 hover:ring-primary"
-                  )}
-                  onClick={() => handleSelectAsset(asset.url)}
-                >
-                  <img
-                    src={asset.url}
-                    alt={asset.name || "asset"}
-                    className='object-cover w-full h-24'
-                  />
-                  <div className='absolute bottom-0 bg-black/50 text-white text-xs w-full text-center opacity-0 group-hover:opacity-100 transition'>
-                    Insert
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className='text-sm text-muted-foreground text-center'>
-              No assets found.
-            </p>
-          )}
-        </TabsContent>
       </Tabs>
+
+      {error ? (
+        <p id='image-error' role='alert' className={cn("text-xs font-medium text-destructive")}>
+          {error}
+        </p>
+      ) : null}
+
+      <DialogClose ref={closeRef} className='hidden' aria-hidden='true' tabIndex={-1} />
     </div>
   );
 }

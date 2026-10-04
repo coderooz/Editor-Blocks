@@ -131,9 +131,151 @@
       display: inline-block;
       /* or display: inline-block */
     }
-  
+   
     /* If using Tailwind with @apply */
     .tiptap-content li p {
       @apply mt-0 mb-0 leading-normal;
     }
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Documentation code block theming
+ * ---------------------------------------------------------------------------
+ * The .hljs-* class names are emitted by highlight.js via lib/highlight.ts and
+ * rendered into React elements by components/docs/CodeBlock.tsx. Nothing here
+ * uses dangerouslySetInnerHTML — the stylesheet is purely presentational.
+ *
+ * Colours are defined as CSS custom properties on .hljs-surface so the light and
+ * dark palettes stay in one place. If you add a token class, add its variable to
+ * BOTH blocks below or it will fall back to the inherited foreground colour.
+ */
+.hljs-surface {
+  --hljs-comment: oklch(0.55 0.02 250);
+  --hljs-keyword: oklch(0.48 0.19 300);
+  --hljs-string: oklch(0.44 0.13 150);
+  --hljs-number: oklch(0.5 0.16 30);
+  --hljs-title: oklch(0.45 0.14 250);
+  --hljs-attr: oklch(0.5 0.12 200);
+  --hljs-type: oklch(0.47 0.12 190);
+  --hljs-variable: oklch(0.5 0.14 60);
+  --hljs-builtin: oklch(0.47 0.15 340);
+  --hljs-literal: oklch(0.5 0.16 30);
+  --hljs-deletion: oklch(0.5 0.19 25);
+  --hljs-addition: oklch(0.45 0.14 150);
+  --hljs-symbol: oklch(0.5 0.15 60);
+  --hljs-meta: oklch(0.5 0.04 250);
+  --hljs-section: oklch(0.45 0.14 250);
+  --hljs-bullet: oklch(0.5 0.15 60);
+  --hljs-quote: oklch(0.44 0.13 150);
+  --hljs-name: oklch(0.47 0.12 190);
+  --hljs-tag: oklch(0.48 0.19 300);
+  --hljs-emphasis: inherit;
+  --hljs-strong: inherit;
+}
+
+.dark .hljs-surface {
+  --hljs-comment: oklch(0.65 0.02 250);
+  --hljs-keyword: oklch(0.78 0.14 300);
+  --hljs-string: oklch(0.8 0.13 150);
+  --hljs-number: oklch(0.79 0.13 45);
+  --hljs-title: oklch(0.79 0.11 250);
+  --hljs-attr: oklch(0.8 0.09 200);
+  --hljs-type: oklch(0.79 0.1 190);
+  --hljs-variable: oklch(0.82 0.1 75);
+  --hljs-builtin: oklch(0.79 0.11 340);
+  --hljs-literal: oklch(0.79 0.13 45);
+  --hljs-deletion: oklch(0.75 0.15 25);
+  --hljs-addition: oklch(0.8 0.13 150);
+  --hljs-symbol: oklch(0.82 0.1 75);
+  --hljs-meta: oklch(0.7 0.03 250);
+  --hljs-section: oklch(0.79 0.11 250);
+  --hljs-bullet: oklch(0.82 0.1 75);
+  --hljs-quote: oklch(0.8 0.13 150);
+  --hljs-name: oklch(0.79 0.1 190);
+  --hljs-tag: oklch(0.78 0.14 300);
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--hljs-comment);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-doctag,
+.hljs-formula {
+  color: var(--hljs-keyword);
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string {
+  color: var(--hljs-string);
+}
+
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: var(--hljs-number);
+}
+
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.function_,
+.hljs-section,
+.hljs-name {
+  color: var(--hljs-title);
+  font-weight: 600;
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-property,
+.hljs-params,
+.hljs-template-variable,
+.hljs-variable,
+.hljs-selector-class {
+  color: var(--hljs-attr);
+}
+
+.hljs-type,
+.hljs-built_in,
+.hljs-class .hljs-title,
+.hljs-selector-id,
+.hljs-selector-class .hljs-title {
+  color: var(--hljs-type);
+}
+
+.hljs-built_in,
+.hljs-type {
+  color: var(--hljs-builtin);
+}
+
+.hljs-meta,
+.hljs-comment.hljs-doctag {
+  color: var(--hljs-meta);
+}
+
+.hljs-deletion {
+  color: var(--hljs-deletion);
+}
+
+.hljs-addition {
+  color: var(--hljs-addition);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
 }

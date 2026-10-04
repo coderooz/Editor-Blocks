@@ -1,3 +1,11 @@
+/**
+ * @file /components/ui/command.tsx
+ * @description shadcn/ui Command palette primitives wrapping cmdk, including a dialog-hosted command dialog.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint cmdk requires stable item values and the dialog variant must stay controlled; keep data-slot attributes so styling overrides keep matching.
+ * @dependencies Requires cmdk (Command), lucide-react (SearchIcon), <Dialog /> primitives, cn().
+ */
+
 "use client"
 
 import * as React from "react"

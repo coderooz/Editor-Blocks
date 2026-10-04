@@ -1,11 +1,25 @@
-/** @format */
+/**
+ * @file /app/page.tsx
+ * @description Marketing landing page with hero, live editor demo, feature grid, tech stack,
+ *              and featured module cards. Header and footer come from the root layout.
+ * @architecture Next.js App Router (Server Component)
+ * @project Editor Blocks — a catalogue of ready-to-use editor modules. Copy here should stay
+ *          engine-agnostic; name a specific engine only where the fact genuinely requires it
+ *          (the tech-stack table reports the engine actually in use).
+ * @ai-agent Internal links must point at routes that exist under app/ — a typo becomes a
+ *            production 404. Verify against the build output route list before adding one.
+ * @ai-agent FEATURED_MODULES is sliced from EDITOR_MODULES rather than duplicated, so a new
+ *            module in the registry shows up here without editing this file.
+ * @ai-agent There is no header or footer markup in this file. They render once in
+ *            app/layout.tsx; adding them here would double them.
+ * @dependencies Requires <LiveEditorDemo />, EDITOR_MODULES/ENGINE_LABELS/getActiveEngines
+ *              from @/constants/module-registry.
+ */
 
 import { LiveEditorDemo } from "@/components/LiveEditorDemo";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import Link from "next/link";
+import { Github } from "@/components/icons/brand-icons";
 import {
-  Github,
-  Twitter,
   Package,
   Sparkles,
   Code,
@@ -16,182 +30,191 @@ import {
   ArrowRight,
   Star,
   Heart,
+  LayoutGrid,
+  BookOpen,
+  Copy,
+  Wrench,
+  MessageSquare,
+  PenTool,
+  FileText,
+  type LucideIcon,
 } from "lucide-react";
+import {
+  EDITOR_MODULES,
+  ENGINE_LABELS,
+  getActiveEngines,
+  type EditorModule,
+} from "@/constants/module-registry";
 
 const FEATURES = [
   {
     icon: Layers,
-    title: "4 Editor Modes",
+    title: "Ready-Made Modules",
     description:
-      "Comment, Document, Content, and Default modes — each with tailored extensions for its use case.",
-    href: "/content",
+      "Comment, Content, Document, and Presentation blocks — each with a pre-tuned extension set, toolbar, and constraints already decided.",
+    href: "/modules",
   },
   {
-    icon: Code,
-    title: "Extensible Architecture",
+    icon: Copy,
+    title: "Copy the Code",
     description:
-      "40+ toolbar buttons, custom extensions (ImageResizable, FontFamily, FontSize, MarkDownLink), and easy plugin system.",
-    href: "/docs",
+      "Every module is readable source you vendor into your own repo. No runtime lock-in, no black box, no waiting on a maintainer.",
+    href: "/documentation",
   },
   {
-    icon: Sparkles,
-    title: "Smart Bubble Menus",
+    icon: Wrench,
+    title: "Engine-Agnostic",
     description:
-      "Context-aware floating menus for text formatting, image resizing, table manipulation, and YouTube embeds.",
-    href: "/comment",
+      "Each module declares which editor core powers it. TipTap today; Lexical, ProseMirror, and others are reserved for future modules.",
+    href: "/documentation/roadmap",
   },
   {
     icon: Package,
-    title: "Import/Export",
+    title: "Full Extension Set",
     description:
-      "Full round-trip support for HTML, JSON, and Markdown. Perfect for CMS integration and content migration.",
-    href: "/content",
+      "Headings, tables, syntax-highlighted code blocks, images, YouTube embeds, and collapsible blocks — wired up per module.",
+    href: "/modules",
   },
   {
     icon: Zap,
     title: "Collaborative Ready",
     description:
       "Yjs and y-protocols pre-installed. Add a WebSocket provider for real-time collaborative editing.",
-    href: "/docs",
+    href: "/documentation",
   },
   {
     icon: Shield,
     title: "TypeScript Strict",
     description:
-      "Full TypeScript strict mode with zero `any` types in new code. Type-safe editor extensions and commands.",
-    href: "/docs",
+      "Full strict mode with typed module contracts. A single registry keeps every module consistent.",
+    href: "/documentation/api",
   },
   {
     icon: Accessibility,
     title: "Accessibility First",
     description:
-      "WCAG 2.1 AA compliant. Semantic HTML, ARIA labels, keyboard navigation, focus management, screen reader support.",
-    href: "/comment",
+      "WCAG 2.1 AA oriented. Semantic HTML, ARIA labels, keyboard navigation, focus management, screen reader support.",
+    href: "/documentation",
   },
   {
     icon: Star,
     title: "Modern Stack",
     description:
-      "Next.js 16 App Router, React 19, TipTap v3, Tailwind CSS 4, shadcn/ui, Radix UI primitives.",
-    href: "/docs",
+      "Next.js 16 App Router, React 19, Tailwind CSS 4, shadcn/ui on Radix UI primitives.",
+    href: "/documentation",
   },
 ];
+
+const ENGINES = getActiveEngines().map((engine) => ENGINE_LABELS[engine]);
 
 const TECH_SPECS = [
   { label: "Framework", value: "Next.js 16 (App Router)" },
   { label: "Language", value: "TypeScript 5 (Strict)" },
   { label: "Runtime", value: "React 19" },
-  { label: "Editor Core", value: "TipTap v3.10.1" },
+  { label: "Current Engine", value: ENGINES.join(", ") },
   { label: "Styling", value: "Tailwind CSS 4" },
   { label: "UI Library", value: "shadcn/ui + Radix UI" },
   { label: "Icons", value: "Lucide React" },
-  { label: "Deployment", value: "Vercel (Edge)" },
+  { label: "Deployment", value: "Vercel" },
   { label: "Package Manager", value: "npm" },
   { label: "License", value: "MIT" },
 ];
 
 const STATS = [
-  { label: "Editor Modes", value: "4" },
-  { label: "Toolbar Buttons", value: "40+" },
-  { label: "Custom Extensions", value: "4" },
-  { label: "Bubble Menus", value: "4" },
+  { label: "Modules", value: String(EDITOR_MODULES.length) },
+  { label: "Editor Cores", value: String(ENGINES.length) },
+  {
+    label: "Feature Tiers",
+    value: String(new Set(EDITOR_MODULES.map((m) => m.category)).size),
+  },
+  { label: "Docs Pages", value: "9" },
   { label: "Bundle Size", value: "~180KB" },
-  { label: "Lighthouse Score", value: "95+" },
+  { label: "License", value: "MIT" },
 ];
+
+/**
+ * The first three modules, surfaced on the landing page.
+ * @ai-agent Sliced from the registry on purpose. Adding a module to EDITOR_MODULES puts it
+ *            here automatically; the full list lives at /modules.
+ */
+const FEATURED_MODULES = EDITOR_MODULES.slice(0, 3);
+
+const MODULE_ICONS: Record<string, LucideIcon> = {
+  comment: MessageSquare,
+  content: PenTool,
+  document: FileText,
+  presentation: BookOpen,
+};
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-        <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">Simple TipTap Editor</span>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
-                <Star className="w-3 h-3" />
-                v0.2.0
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/demo"
-                className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-              >
-                <Sparkles className="w-4 h-4" />
-                Live Demo
-              </Link>
-              <Link
-                href="https://github.com/coderooz/Simple-Tiptap-editor"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Github className="w-4 h-4" />
-                GitHub
-              </Link>
-              <ThemeToggle />
-            </div>
-          </div>
-        </nav>
-      </header>
-
-      <main className="pt-16">
-        <section className="relative overflow-hidden py-20 sm:py-32 lg:py-40" aria-labelledby="hero-heading">
+      {/* A plain <div>, not a second <main>: app/layout.tsx already renders the single
+          <main> landmark for the whole app. Nesting another produced a duplicate landmark
+          that screen readers announce twice. pt-16 clears the fixed h-16 header. */}
+      <div className="pt-16">
+        {/* ---------------------------------------------------------------- Hero */}
+        <section
+          className="relative overflow-hidden py-20 sm:py-32 lg:py-40"
+          aria-labelledby="hero-heading"
+        >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-4xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-                <Sparkles className="w-4 h-4" />
-                <span>Production-Ready Rich Text Editor</span>
+                <Sparkles className="w-4 h-4" aria-hidden="true" />
+                <span>Ready-to-Use Editor Modules</span>
               </div>
+
               <h1
                 id="hero-heading"
                 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6"
               >
-                Build Better{" "}
-                <span className="text-primary">Editing Experiences</span>{" "}
+                Stop Building the{" "}
+                <span className="text-primary">Same Editor Twice</span>
                 <br />
-                with Next.js 16 & TipTap v3
+                Ship Editor Blocks Instead
               </h1>
+
               <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-                A modern, extensible rich-text editor featuring 4 specialized modes,
-                smart bubble menus, image resizing, YouTube embeds, collaborative editing
-                ready, and full TypeScript support.
+                A library of drop-in editor modules for React and Next.js. Pick the block that
+                matches your use case — comments, articles, documents, presentations — copy it
+                in, and ship. Engine-agnostic by design, so you are never locked to one editor.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
                 <Link
-                  href="/demo"
+                  href="/modules"
                   className="group inline-flex items-center gap-2 px-8 py-3 text-base font-semibold text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/25"
                 >
-                  <Sparkles className="w-5 h-5" />
-                  Try Live Demo
+                  <LayoutGrid className="w-5 h-5" aria-hidden="true" />
+                  Browse Modules
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
-                  href="https://github.com/coderooz/Simple-Tiptap-editor"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/documentation/getting-started"
                   className="inline-flex items-center gap-2 px-8 py-3 text-base font-semibold text-foreground bg-background border border-border rounded-lg hover:bg-muted transition-all duration-200"
                 >
-                  <Github className="w-5 h-5" />
-                  View on GitHub
+                  <BookOpen className="w-5 h-5" aria-hidden="true" />
+                  Get Started
                 </Link>
               </div>
+
               <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Shield className="w-4 h-4" />
+                  <Shield className="w-4 h-4" aria-hidden="true" />
                   MIT Licensed
                 </span>
                 <span className="flex items-center gap-1">
-                  <Code className="w-4 h-4" />
+                  <Code className="w-4 h-4" aria-hidden="true" />
                   TypeScript Strict
                 </span>
                 <span className="flex items-center gap-1">
-                  <Accessibility className="w-4 h-4" />
+                  <Accessibility className="w-4 h-4" aria-hidden="true" />
                   WCAG 2.1 AA
                 </span>
                 <span className="flex items-center gap-1">
-                  <Zap className="w-4 h-4" />
-                  {"<"} 2s LCP
+                  <Copy className="w-4 h-4" aria-hidden="true" />
+                  Copy the source, own it
                 </span>
               </div>
             </div>
@@ -200,16 +223,22 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-20 sm:py-28 bg-muted/30" aria-labelledby="features-heading">
+        {/* ------------------------------------------------------------ Features */}
+        <section
+          className="py-20 sm:py-28 bg-muted/30"
+          aria-labelledby="features-heading"
+        >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 id="features-heading" className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-                Everything You Need for{" "}
-                <span className="text-primary">Rich Text Editing</span>
+              <h2
+                id="features-heading"
+                className="text-3xl sm:text-4xl font-bold text-foreground mb-4"
+              >
+                Why <span className="text-primary">Editor Blocks</span>
               </h2>
               <p className="text-lg text-muted-foreground">
-                Purpose-built features for modern content creation workflows.
-                Each feature is designed to be composable and extensible.
+                Modules instead of frameworks. Readable source instead of a black box.
+                One contract that outlives any single editor core.
               </p>
             </div>
 
@@ -225,14 +254,21 @@ export default function Home() {
                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       <feature.icon className="w-6 h-6" aria-hidden="true" />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">{feature.title}</h3>
-                    <p className="text-muted-foreground mb-4 leading-relaxed">{feature.description}</p>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
+                      {feature.title}
+                    </h3>
+                    <p className="text-muted-foreground mb-4 leading-relaxed">
+                      {feature.description}
+                    </p>
                     <Link
                       href={feature.href}
                       className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                     >
                       Explore
-                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                      <ArrowRight
+                        className="w-4 h-4 transition-transform group-hover:translate-x-1"
+                        aria-hidden="true"
+                      />
                     </Link>
                   </div>
                 </article>
@@ -241,21 +277,28 @@ export default function Home() {
           </div>
         </section>
 
+        {/* --------------------------------------------------------------- Stats */}
         <section className="py-20 sm:py-28" aria-labelledby="stats-heading">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 id="stats-heading" className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-                Trusted by Developers
+              <h2
+                id="stats-heading"
+                className="text-3xl sm:text-4xl font-bold text-foreground mb-4"
+              >
+                The Catalogue Today
               </h2>
               <p className="text-lg text-muted-foreground">
-                Built with modern tooling and best practices for production applications.
+                Every number below is read from the module registry, so it cannot drift from
+                what actually ships.
               </p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
               {STATS.map((stat) => (
                 <div key={stat.label} className="text-center p-6">
-                  <div className="text-4xl sm:text-5xl font-bold text-primary mb-2">{stat.value}</div>
+                  <div className="text-4xl sm:text-5xl font-bold text-primary mb-2">
+                    {stat.value}
+                  </div>
                   <div className="text-muted-foreground font-medium">{stat.label}</div>
                 </div>
               ))}
@@ -263,14 +306,21 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-20 sm:py-28 bg-muted/30" aria-labelledby="tech-heading">
+        {/* --------------------------------------------------------- Tech stack */}
+        <section
+          className="py-20 sm:py-28 bg-muted/30"
+          aria-labelledby="tech-heading"
+        >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 id="tech-heading" className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-                Modern Technology Stack
+              <h2
+                id="tech-heading"
+                className="text-3xl sm:text-4xl font-bold text-foreground mb-4"
+              >
+                Built On Proven Tools
               </h2>
               <p className="text-lg text-muted-foreground">
-                Carefully selected tools for performance, developer experience, and maintainability.
+                Carefully selected for performance, developer experience, and maintainability.
               </p>
             </div>
 
@@ -280,7 +330,9 @@ export default function Home() {
                   key={spec.label}
                   className="p-4 bg-background rounded-lg border border-border text-center hover:border-primary/50 transition-colors"
                 >
-                  <div className="text-sm font-semibold text-foreground mb-1">{spec.value}</div>
+                  <div className="text-sm font-semibold text-foreground mb-1">
+                    {spec.value}
+                  </div>
                   <div className="text-xs text-muted-foreground">{spec.label}</div>
                 </div>
               ))}
@@ -288,178 +340,169 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-20 sm:py-28" aria-labelledby="modes-heading">
+        {/* ---------------------------------------------------- Featured modules */}
+        <section className="py-20 sm:py-28" aria-labelledby="modules-heading">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 id="modes-heading" className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-                Four Specialized Editor Modes
+              <h2
+                id="modules-heading"
+                className="text-3xl sm:text-4xl font-bold text-foreground mb-4"
+              >
+                Pick a Block, Drop It In
               </h2>
               <p className="text-lg text-muted-foreground">
-                Each mode is a curated set of extensions optimized for its specific use case.
+                Each module is a complete editor with its extension set, toolbar, and limits
+                already decided. No configuration marathon.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <ModeCard
-                title="Comment"
-                description="Minimal editor for comments, replies, and quick notes. Core formatting only."
-                icon="MessageSquare"
-                features={["Bold, Italic, Underline", "Links", "Character count", "2500 char limit"]}
-                href="/comment"
-              />
-              <ModeCard
-                title="Document"
-                description="Full-featured document editor with structure, tables, and advanced formatting."
-                icon="FileText"
-                features={["All formatting", "Tables", "Code blocks", "Details blocks", "Character count"]}
-                href="/docs"
-              />
-              <ModeCard
-                title="Content"
-                description="Blog posts and long-form content with media embeds and typography."
-                icon="PenTool"
-                features={["Rich typography", "Images & YouTube", "Headings", "Lists & quotes", "Import/Export"]}
-                href="/content"
-              />
-              <ModeCard
-                title="Default"
-                description="Basic TipTap setup for simple use cases and custom extension starting point."
-                icon="Type"
-                features={["Core formatting", "Lists", "Links", "Extensible base"]}
-                href="/"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {FEATURED_MODULES.map((module) => (
+                <ModuleCard key={module.id} module={module} />
+              ))}
+            </div>
+
+            <div className="text-center mt-10 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/modules"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-foreground bg-background border border-border rounded-lg hover:bg-muted transition-all duration-200"
+              >
+                <LayoutGrid className="w-4 h-4" aria-hidden="true" />
+                View All Modules
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </Link>
+              <Link
+                href="/documentation"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-foreground bg-background border border-border rounded-lg hover:bg-muted transition-all duration-200"
+              >
+                <BookOpen className="w-4 h-4" aria-hidden="true" />
+                Read the Docs
+              </Link>
             </div>
           </div>
         </section>
 
-        <section className="py-20 sm:py-28 bg-gradient-to-br from-primary/5 via-background to-background" aria-labelledby="cta-heading">
+        {/* ----------------------------------------------------------------- CTA */}
+        <section
+          className="py-20 sm:py-28 bg-gradient-to-br from-primary/5 via-background to-background"
+          aria-labelledby="cta-heading"
+        >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
             <div className="max-w-3xl mx-auto">
-              <h2 id="cta-heading" className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
-                Ready to Build Better Editors?
+              <h2
+                id="cta-heading"
+                className="text-3xl sm:text-4xl font-bold text-foreground mb-6"
+              >
+                Ship Your Editor Today
               </h2>
               <p className="text-lg text-muted-foreground mb-10">
-                Clone the repository, customize the extensions, and deploy in minutes.
-                Join developers building the next generation of content editing experiences.
+                Clone the repository, pick a module, and adapt it. Contributing a module that
+                others can use is worth more than a narrowly tailored one.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
-                  href="https://github.com/coderooz/Simple-Tiptap-editor"
+                  href="https://github.com/coderooz/Editor-Blocks"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group inline-flex items-center gap-2 px-8 py-3 text-base font-semibold text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/25"
                 >
-                  <Github className="w-5 h-5" />
+                  <Github className="w-5 h-5" aria-hidden="true" />
                   Star on GitHub
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight
+                    className="w-4 h-4 transition-transform group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
                 </Link>
                 <Link
-                  href="/demo"
+                  href="/documentation/custom-modules"
                   className="inline-flex items-center gap-2 px-8 py-3 text-base font-semibold text-foreground bg-background border border-border rounded-lg hover:bg-muted transition-all duration-200"
                 >
-                  <Sparkles className="w-5 h-5" />
-                  Open Full Demo
+                  <Wrench className="w-5 h-5" aria-hidden="true" />
+                  Build a Module
                 </Link>
               </div>
               <p className="mt-8 text-sm text-muted-foreground flex items-center justify-center gap-2">
                 <Heart className="w-4 h-4 text-red-500" aria-hidden="true" />
-                Built with care by <a href="https://coderooz.in" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Coderooz</a>
+                Built with care by{" "}
+                <a
+                  href="https://coderooz.in"
+                  className="text-primary hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Coderooz
+                </a>
               </p>
             </div>
           </div>
         </section>
-      </main>
-
-      <footer className="bg-muted/30 border-t border-border py-12" role="contentinfo">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div className="md:col-span-2">
-              <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                Simple TipTap Editor
-              </h3>
-              <p className="text-muted-foreground max-w-xs leading-relaxed">
-                A production-ready rich text editor built with Next.js 16, React 19, TipTap v3, and Tailwind CSS 4.
-                Open source, extensible, and designed for modern web applications.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-foreground mb-4">Resources</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/demo" className="hover:text-primary transition-colors">Live Demo</Link></li>
-                <li><Link href="https://github.com/coderooz/Simple-Tiptap-editor" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors flex items-center gap-1">GitHub Repository <Github className="w-3 h-3" /></Link></li>
-                <li><Link href="https://www.npmjs.com/package/simple-tiptap-editor" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors flex items-center gap-1">NPM Package <Package className="w-3 h-3" /></Link></li>
-                <li><Link href="/docs" className="hover:text-primary transition-colors">Documentation</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-foreground mb-4">Connect</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="https://twitter.com/coderooz" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors flex items-center gap-1">Twitter <Twitter className="w-3 h-3" /></a></li>
-                <li><a href="https://github.com/coderooz" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors flex items-center gap-1">GitHub <Github className="w-3 h-3" /></a></li>
-                <li><a href="https://coderooz.in" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Website</a></li>
-                <li><a href="mailto:contact@coderooz.in" className="hover:text-primary transition-colors">Email</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <p>© 2025 Coderooz. MIT Licensed.</p>
-            <div className="flex items-center gap-4">
-              <a href="https://github.com/coderooz/Simple-Tiptap-editor/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">License</a>
-              <a href="https://github.com/coderooz/Simple-Tiptap-editor/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Security</a>
-              <a href="https://github.com/coderooz/Simple-Tiptap-editor/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Contributing</a>
-              <a href="https://github.com/coderooz/Simple-Tiptap-editor/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Code of Conduct</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }
 
-function ModeCard({
-  title,
-  description,
-  icon,
-  features,
-  href,
-}: {
-  title: string;
-  description: string;
-  icon: string;
-  features: string[];
-  href: string;
-}) {
-  const IconComponent = {
-    MessageSquare: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>,
-    FileText: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-    PenTool: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>,
-    Type: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
-  }[icon];
+/**
+ * Featured module card.
+ *
+ * @ai-agent Shows the engine badge and the module tier so a visitor can tell at a glance
+ *            what powers the block. Both values come from the registry, not local props.
+ */
+function ModuleCard({ module }: { module: EditorModule }) {
+  const Icon = MODULE_ICONS[module.id] ?? Layers;
+  const engineLabel = ENGINE_LABELS[module.engine];
 
   return (
-    <article className="p-6 bg-background rounded-xl border border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
+    <article className="flex flex-col p-6 bg-background rounded-xl border border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
       <div className="flex items-center gap-3 mb-4">
         <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary">
-          {IconComponent && <IconComponent aria-hidden="true" />}
+          <Icon className="w-6 h-6" aria-hidden="true" />
         </div>
-        <h3 className="text-xl font-semibold text-foreground">{title}</h3>
+        <div>
+          <h3 className="text-xl font-semibold text-foreground">{module.title}</h3>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            <span className="inline-flex items-center gap-1 text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              {engineLabel} Editor
+            </span>
+            <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              {module.category}
+            </span>
+          </div>
+        </div>
       </div>
-      <p className="text-muted-foreground mb-4">{description}</p>
-      <ul className="space-y-2 mb-6" role="list">
-        {features.map((feature) => (
-          <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-            <svg className="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+
+      <p className="text-muted-foreground mb-4 leading-relaxed">{module.summary}</p>
+
+      <ul className="space-y-2 mb-6 flex-1" role="list">
+        {module.features.slice(0, 5).map((feature) => (
+          <li
+            key={feature}
+            className="flex items-center gap-2 text-sm text-muted-foreground"
+          >
+            <svg
+              className="w-4 h-4 text-primary flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
             {feature}
           </li>
         ))}
       </ul>
+
       <Link
-        href={href}
+        href={module.href}
         className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors w-full justify-center py-2 px-4 rounded-lg border border-primary/20 hover:bg-primary/5 transition-all"
       >
-        Try {title} Mode
-        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+        Try {module.title}
+        <ArrowRight className="w-4 h-4" aria-hidden="true" />
       </Link>
     </article>
   );

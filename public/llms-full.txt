@@ -1,0 +1,528 @@
+# Editor Blocks — Full Documentation for AI Agents
+
+> This file contains the complete text of the Editor Blocks documentation in a single
+> retrievable document. It is the extended counterpart to `/llm.txt`.
+>
+> Editor Blocks is a library of ready-to-use, drop-in editor modules for React and Next.js.
+> Modules are pre-tuned editor configurations for one job each, packaged the way shadcn/ui
+> packages components: readable source you vendor and own.
+>
+> All shipped modules run on TipTap v3.31.4. The architecture reserves Lexical, ProseMirror,
+> BlockNote, Slate, and Quill for future modules.
+
+---
+
+## 1. Overview
+
+### What this is
+
+Most projects end up building the same editor twice — once for a comment field, once for a
+blog body — and the two implementations drift apart. Editor Blocks stops that. Each *module* is
+a pre-tuned editor configuration for one specific job, with its extension set, toolbar, and
+constraints already decided.
+
+The name is deliberate: these are *blocks* you place, not a single editor you configure. Four
+modules ship today. The contract is engine-agnostic so the catalogue can grow to cover other
+editors without breaking.
+
+### Design principles
+
+1. **Modules, not frameworks.** You install a module that solves one job, not an entire editor
+   framework you then configure.
+2. **Engine-agnostic on purpose.** Each module declares which editor core powers it. Today that
+   is TipTap. Others are reserved values, so adding an engine is a catalogue change rather than
+   a rewrite.
+3. **Copy the code.** Every module is readable source you can vendor into your own repository.
+   No runtime lock-in, no black box.
+4. **One contract.** All modules accept the same props and expose the same context API, so moving
+   from a comment box to a full document editor is a one-word change.
+
+---
+
+## 2. Getting Started
+
+### Requirements
+
+| Tool      | Version                    |
+| --------- | -------------------------- |
+| Node.js   | 20.0.0 or newer            |
+| npm       | 10.0.0 or newer            |
+| React     | 19                         |
+| Next.js   | 16 (App Router)            |
+
+### Install and run
+
+```bash
+git clone https://github.com/coderooz/Editor-Blocks.git
+cd Editor-Blocks
+npm install
+npm run dev
+```
+
+The dev server starts on `http://localhost:3000`. If the port is busy, Next.js selects the next
+free port and prints it.
+
+### Scripts
+
+| Command                | Purpose                                     |
+| ---------------------- | ------------------------------------------- |
+| `npm run dev`          | Start the dev server with hot reload        |
+| `npm run build`        | Create an optimized production build        |
+| `npm start`            | Serve the production build                  |
+| `npm run lint`         | Run ESLint                                 |
+| `npm run typecheck`    | Run the TypeScript compiler with `--noEmit` |
+
+### Mount a module
+
+```tsx
+// app/comments/page.tsx
+"use client";
+
+import { EditorPage } from "@/components/EditorPage";
+
+export default function CommentsPage() {
+  return <EditorPage type="comment" />;
+}
+```
+
+| `type` value   | Module                | Extension set           |
+| -------------- | --------------------- | ----------------------- |
+| `"comment"`    | Comment Editor        | `COMMENT_EXTENSIONS`    |
+| `"content"`    | Content Editor        | `BLOG_EXTENSIONS`       |
+| `"document"`   | Document Editor       | `DOCUMENT_EXTENSIONS`   |
+| `"presentation"` | Presentation Editor | `PRESENTATION_EXTENSIONS` |
+
+`EditorProvider` is already mounted in the root layout. Mounting a second provider on a page
+creates a second editor instance and desynchronises the toolbar.
+
+### Read and write content
+
+```tsx
+"use client";
+
+import { useEditorContext } from "@/context/EditorContext";
+import { EditorPage } from "@/components/EditorPage";
+
+export default function ArticleEditor({ saved }: { saved: string }) {
+  const { editorContent, charCount } = useEditorContext();
+
+  return (
+    <>
+      <EditorPage type="content" initialContent={saved} />
+      <p>Live HTML length: {editorContent.length}</p>
+      <p>Character count: {charCount}</p>
+    </>
+  );
+}
+```
+
+**Security note:** the editor emits raw HTML. Sanitise with DOMPurify or `sanitize-html` before
+persisting to a database or rendering on another domain. The editor does not sanitise on your
+behalf.
+
+---
+
+## 3. API Reference
+
+### `EditorPage` props
+
+```tsx
+interface EditorPageProps {
+  /** Module id — selects the extension set and toolbar. */
+  type: EditorType;
+  /** Optional HTML seeded into the editor on first load. */
+  initialContent?: string;
+}
+```
+
+| Prop             | Type        | Required | Description                                                                                       |
+| ---------------- | ----------- | -------- | ------------------------------------------------------------------------------------------------- |
+| `type`           | `EditorType`| Yes      | Selects the module. Changing it recreates the editor with that module's extensions and toolbar.   |
+| `initialContent` | `string`    | No       | HTML applied when the editor becomes ready. Used to hydrate a saved draft.                        |
+
+A page can mount exactly one editor: the shared provider holds a single instance, so nesting a
+second `EditorPage` inside another will fight over state.
+
+### `useEditorContext()`
+
+```tsx
+interface EditorContextValue {
+  /** The live editor instance, or null before it is ready. */
+  editor: Editor | null;
+  /** Current module id. */
+  editorType: EditorType;
+  /** Switch module. Recreates the editor. */
+  setEditorType: (type: EditorType) => void;
+  /** Current HTML, updated on every keystroke. */
+  editorContent: string;
+  /** Seed or replace the HTML. */
+  setEditorContent: (value: string) => void;
+  /** Plain-text character count from the current document. */
+  charCount: number;
+}
+```
+
+| Field             | Type                          | Description                                                                    |
+| ----------------- | ----------------------------- | ------------------------------------------------------------------------------ |
+| `editor`          | `Editor \| null`              | Guard for `null` before calling chain commands. Null on first render pass.     |
+| `editorContent`   | `string`                      | HTML string. Sanitise before persisting or rendering elsewhere.                 |
+| `charCount`       | `number`                      | Length of the document's plain text. Differs from HTML length.                 |
+| `setEditorType`   | `(t: EditorType) => void`     | Swaps the module. Destroys the current editor, losing content and undo history.|
+| `setEditorContent`| `(v: string) => void`         | Seeds or replaces the document HTML.                                           |
+
+### Extension presets
+
+Exported from `constants/EditorExtension.tsx`:
+
+```tsx
+import {
+  DEFAULT_EXTENSIONS,      // core building blocks
+  COMPLEX_EXTENSIONS,      // DEFAULT + headings, tables, media, embeds
+  BLOG_EXTENSIONS,         // alias of COMPLEX, for long-form content
+  DOCUMENT_EXTENSIONS,     // COMPLEX + CharacterCount (textSize)
+  COMMENT_EXTENSIONS,      // DEFAULT + CharacterCount (limit 2500, nodeSize)
+  PRESENTATION_EXTENSIONS, // COMPLEX + CharacterCount (textSize)
+} from "@/constants/EditorExtension";
+```
+
+**Invariant:** register the link mark exactly once. `MarkdownLink` extends the stock `Link`
+extension. Registering both yields two extensions named `link`, which TipTap warns about and
+which breaks link input rules.
+
+### Toolbar menu items
+
+Toolbar items are plain data, grouped by category. Adding a button is an append, not a new
+component.
+
+```tsx
+const MyButton: MenuItem = {
+  title: "Strikethrough",
+  group: "styling",          // controls the toolbar separator
+  type: "button",
+  icon: Strikethrough,
+  isActive: (editor) => editor.isActive("strike"),
+  action: (editor) => editor.chain().focus().toggleStrike().run(),
+};
+```
+
+| `type`      | Renders          | Required fields                     |
+| ----------- | ---------------- | ----------------------------------- |
+| `button`    | Icon button      | `title`, `group`                    |
+| `dropdown`  | Select           | `title`, `group`, `options`, `onSelect` |
+| `input`     | Text/colour input| `title`, `group`, `inputType`, `onSelect` |
+| `model`     | Dialog           | `title`, `group`, `model`           |
+
+**Invariant:** a toolbar button calls a command. If the matching extension is not in that
+module's preset, the command does not exist and the click throws. Add the extension first.
+
+### Utilities
+
+```tsx
+import { extractYoutubeId } from "@/lib/editor-utils";
+
+extractYoutubeId("https://www.youtube.com/watch?v=dQw4w9WgXcQ"); // "dQw4w9WgXcQ"
+extractYoutubeId("https://youtu.be/dQw4w9WgXcQ");                 // "dQw4w9WgXcQ"
+extractYoutubeId("not a url");                                    // null
+```
+
+---
+
+## 4. Architecture
+
+### Layers
+
+| Layer     | Location                          | Responsibility                                        |
+| --------- | --------------------------------- | ----------------------------------------------------- |
+| Routes    | `app/`                            | Mount a module by passing its id. No editor logic.    |
+| Registry  | `constants/module-registry.ts`    | Authoritative module metadata. Drives every listing.  |
+| Provider  | `context/EditorContext.tsx`       | Owns the single editor instance; resolves extensions. |
+| Presets   | `constants/EditorExtension.tsx`   | Concrete TipTap extension arrays and menu definitions.|
+
+### Request flow
+
+1. A route renders `<EditorPage type="comment" />`.
+2. `EditorPage` calls `setEditorType("comment")` in an effect.
+3. The provider re-resolves extensions from its module → preset map.
+4. `useEditor` is keyed on the module id, so a change tears down the old editor and builds a new one.
+5. `EditorMenuBar` reads the module and selects its menu array.
+6. `EditorContent` renders the ProseMirror surface.
+
+**Trade-off:** step 4 is a full teardown. Switching modules discards content and undo history.
+Capture `editorContent` before switching and pass it back as `initialContent` if you must
+preserve it.
+
+### Single instance model
+
+`EditorProvider` is mounted once in the root layout. Everything reads the editor through context
+rather than creating its own. One editor per page; a second provider would double state. The
+editor is created with `immediatelyRender: false`, so there is no server/client markup mismatch.
+
+### Registry as the single source of truth
+
+Module metadata lives in exactly one file. Consumers:
+
+```
+app/modules/page.tsx               → cards, search, category filter
+app/documentation/modules/page.tsx  → capability matrix
+app/documentation/modules/[id]/     → one static page per module
+app/documentation/page.tsx          → overview table
+app/layout.tsx                     → JSON-LD structured data
+public/llm.txt                     → machine-readable catalogue
+```
+
+This is why adding a module is a one-file change plus one route.
+
+### Preset composition
+
+```
+DEFAULT_EXTENSIONS         core: doc, paragraph, text, basic marks, lists
+  └─ COMPLEX_EXTENSIONS    + headings, tables, media, embeds, code blocks
+       ├─ BLOG_EXTENSIONS         (alias)
+       ├─ DOCUMENT_EXTENSIONS     + CharacterCount (textSize)
+       └─ PRESENTATION_EXTENSIONS + CharacterCount (textSize)
+
+COMMENT_EXTENSIONS        DEFAULT + CharacterCount (limit 2500, nodeSize)
+```
+
+Higher tiers spread the ones below them, so a capability added to `DEFAULT_EXTENSIONS` appears
+in every module. Add widely useful extensions low in the hierarchy rather than patching each
+preset.
+
+### Known trade-offs
+
+| Decision                              | Consequence                                                                 |
+| ------------------------------------- | --------------------------------------------------------------------------- |
+| Module switch recreates the editor    | Content and undo history lost on switch. Acceptable for page-per-module.     |
+| One shared provider in root layout    | A page cannot host two independent editors. Needs a scoped-provider refactor.|
+| Presets are static arrays             | Extensions cannot be configured per host app without editing constants.     |
+| Toolbar items are data, not components| Simple to extend, but bespoke JSX controls cannot be expressed yet.          |
+
+---
+
+## 5. Module Reference
+
+### Comment Editor (`comment`)
+
+Minimal TipTap editor for UGC surfaces: threaded comments, replies, review notes, feedback
+forms. Ships only the formatting a commenter realistically needs and enforces a 2,500 character
+ceiling so a comment cannot blow out a thread view.
+
+- Tier: Minimal | Status: stable
+- Best for: threaded comments and replies, review and approval notes, inline feedback widgets,
+  quick-capture input
+- Capabilities: bold, italic, underline, strike, links with autolink, bullet and ordered lists,
+  blockquotes, inline code, live character count, 2500 character hard limit
+- Extensions: Document, Paragraph, Text, Bold, Italic, Underline, Strike, Code, MarkdownLink,
+  BulletList, OrderedList, ListItem, Blockquote, CharacterCount
+- Live demo: `/examples/comment`
+- Docs: `/documentation/modules/comment`
+
+> The character limit is enforced via `CharacterCount`. Pasting longer content truncates it —
+> split long input across multiple comments rather than raising the limit.
+
+### Content Editor (`content`)
+
+TipTap editor tuned for long-form publishing. Layers the comment baseline with the full
+typography set — six heading levels, alignment, subscript and superscript, highlighting,
+horizontal rules, and smart punctuation.
+
+- Tier: Rich Content | Status: stable
+- Best for: blog posts and articles, news and editorial content, CMS long-text fields, content
+  marketing pages
+- Capabilities: everything in Comment Editor, plus headings H1–H6 with Tailwind sizing, text
+  alignment (left/center/right/justify), subscript and superscript, multi-colour highlight,
+  horizontal rules, smart typography, font family / size / line height, text and background colour
+- Extensions: Heading (custom per-level classes), TextAlign, Subscript, Superscript, Highlight,
+  HorizontalRule, Typography, TextStyle, Color, BackgroundColor, FontFamily, FontSize, LineHeight
+- Live demo: `/examples/content`
+- Docs: `/documentation/modules/content`
+
+### Document Editor (`document`)
+
+The heaviest TipTap configuration. Adds syntax-highlighted code blocks, resizable tables,
+collapsible details blocks, image drop-and-paste handling, YouTube embeds, and JSON
+import/export, plus a textSize character counter.
+
+- Tier: Full Featured | Status: stable
+- Best for: documentation and wikis, knowledge bases, technical and legal writing, report
+  authoring
+- Capabilities: everything in Content Editor, plus syntax-highlighted code blocks (lowlight),
+  resizable tables with header rows, collapsible details blocks, image insert / drop / paste,
+  base64 image support, YouTube embed dialog, JSON import and export, character count (textSize)
+- Extensions: CodeBlockLowlight, TableKit, Details, DetailsSummary, DetailsContent, Image,
+  FileHandler, Youtube, CharacterCount
+- Live demo: `/examples/docs`
+- Docs: `/documentation/modules/document`
+
+> The `Image` extension permits base64 sources, and the file handler accepts pasted and dropped
+> images. Sanitise stored HTML before rendering it on another domain.
+
+### Presentation Editor (`presentation`)
+
+TipTap editor configured for presentation-shaped content. Reuses the full complex extension set
+with a textSize character counter — suits slide copy, speaker notes, and structured walkthroughs
+where heading hierarchy carries most of the meaning.
+
+- Tier: Experimental | Status: beta
+- Best for: slide decks and speaker notes, product walkthroughs, structured onboarding guides,
+  course outlines
+- Capabilities: everything in Content Editor, all complex block extensions, character count
+  (textSize), heading-led structure
+- Extensions: all complex extensions, CharacterCount (textSize)
+- Live demo: `/examples/presentation`
+- Docs: `/documentation/modules/presentation`
+
+> Marked `beta`. The extension set may change between releases — pin the version if you depend
+> on it in production.
+
+---
+
+## 6. Adding a Module
+
+### Step 1 — define the extension preset
+
+```ts
+// constants/EditorExtension.tsx
+import { CharacterCount } from "@tiptap/extensions";
+
+export const TICKET_EXTENSIONS = [
+  ...DEFAULT_EXTENSIONS,
+  CharacterCount.configure({ limit: 8000, mode: "textSize" }),
+];
+```
+
+### Step 2 — add the id to `EditorType`
+
+```ts
+// context/EditorContext.tsx
+export type EditorType = "comment" | "content" | "document" | "presentation" | "ticket";
+```
+
+### Step 3 — map the id to the preset
+
+```ts
+// context/EditorContext.tsx — inside the provider
+const map = {
+  comment: COMMENT_EXTENSIONS,
+  content: BLOG_EXTENSIONS,
+  document: DOCUMENT_EXTENSIONS,
+  presentation: PRESENTATION_EXTENSIONS,
+  ticket: TICKET_EXTENSIONS,   // ← new
+} as const;
+```
+
+### Step 4 — register it in the catalogue
+
+```ts
+// constants/module-registry.ts
+export const EDITOR_MODULES: EditorModule[] = [
+  // …existing modules
+  {
+    id: "ticket",
+    title: "Ticket Editor",
+    summary: "Structured editor for support tickets with an 8,000 character budget.",
+    description: "A TipTap editor sized for issue descriptions and support threads.",
+    engine: "tiptap",
+    engineVersion: "^3.31.4",
+    category: "Rich Content",
+    status: "beta",
+    href: "/examples/ticket",
+    docs: "/documentation/modules/ticket",
+    extensionSet: "TICKET_EXTENSIONS",
+    useCases: ["Support tickets", "Issue descriptions"],
+    features: ["Everything in Comment Editor", "8,000 character budget"],
+    extensions: ["All default extensions", "CharacterCount"],
+  },
+];
+```
+
+Then add a route at `app/examples/ticket/page.tsx`. The card, documentation page, search index,
+structured data, and `llm.txt` all update automatically because they read from the registry.
+
+### Adding a toolbar button
+
+```tsx
+import { Highlighter } from "lucide-react";
+
+export const CONTENT_MENU: MenuItem[] = [
+  // …existing items
+  {
+    title: "Highlight",
+    group: "styling",
+    type: "button",
+    icon: Highlighter,
+    isActive: (editor) => editor.isActive("highlight"),
+    action: (editor) => editor.chain().focus().toggleHighlight().run(),
+  },
+];
+```
+
+### Adding a new engine
+
+The `EditorEngine` type already reserves `lexical`, `prosemirror`, `slate`, `quill`,
+`blocknote`, and `custom`. Wiring one up requires an adapter layer:
+
+```ts
+export interface EditorAdapter {
+  getHTML(): string;
+  setHTML(html: string): void;
+  focus(): void;
+  isEmpty(): boolean;
+  destroy(): void;
+}
+```
+
+The provider needs a branch that builds the adapter instead of calling `useEditor`. Keep the
+adapter surface small so the context, toolbar, and counter stay engine-agnostic. Do not map a
+non-Tiptap engine onto the TipTap command surface — if an engine cannot support a toolbar item,
+omit the item rather than stubbing the command.
+
+---
+
+## 7. Roadmap
+
+### Planned editor cores
+
+| Engine      | Why it fits                                       | Trade-off                                                    |
+| ----------- | ------------------------------------------------- | ------------------------------------------------------------ |
+| Lexical     | Meta's editor, first-class React model, strong a11y | Different command API — needs the adapter layer first        |
+| ProseMirror | The layer TipTap sits on; maximum control          | Verbose. Best reserved for schema-level control              |
+| BlockNote   | Block-based model, closest to a document editor    | Own styling system; needs a theme bridge                     |
+| Slate       | Flexible value model for custom inline behaviour   | Most work per module. Manual serialisation and normalisation |
+| Quill       | Mature Delta format, small runtime, easy to embed  | Smaller extension ecosystem than TipTap                      |
+
+These are reserved type values and design notes, not shipped work.
+
+### Platform work
+
+- **Publish the distributable package.** The `plugin/` scaffold holds extracted module sources.
+  Publishing turns copy-paste into an npm install while keeping source access.
+- **Per-host configuration.** Presets are static arrays today. An options-merge layer would let
+  a host app adjust limits, allowed MIME types, and toolbar items without editing constants.
+- **Multiple editors per page.** The shared provider holds one instance. A scoped-provider
+  refactor would allow a comment box and a document editor on the same route.
+- **Accessibility audit.** Toolbar semantics, focus restoration after dialogs, and contrast
+  verification across the full extension set.
+- **Test coverage.** Unit tests for the registry and the YouTube URL parser, plus end-to-end
+  coverage of toolbar commands per module.
+
+---
+
+## 8. Repository Conventions
+
+1. Module metadata lives in `constants/module-registry.ts` and nowhere else. Never hand-edit a
+   page to list modules.
+2. Module types are a string union (`EditorType`). Adding a value requires a matching entry in
+   the provider's extension map, or it will compile but fall back to the default preset.
+3. Source files carry an `@ai-agent` JSDoc tag describing non-obvious invariants. Read the
+   header comment before changing a file.
+4. Toolbar items are plain data grouped by category, not components.
+5. The link mark must be registered exactly once (`MarkdownLink` replaces the stock `Link`).
+6. Presets spread upward: add a widely useful extension to `DEFAULT_EXTENSIONS` rather than
+   patching each tier.
+7. Docs navigation lives in `constants/docs-nav.ts`.
+
+## 9. License
+
+MIT. Copyright Coderooz (https://coderooz.in).
+Repository: https://github.com/coderooz/Editor-Blocks

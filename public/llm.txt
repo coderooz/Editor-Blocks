@@ -1,0 +1,120 @@
+# Editor Blocks
+
+> A library of ready-to-use, drop-in editor modules for React and Next.js. Each module is a
+> pre-tuned editor configuration for one job — a comment box, an article body, a document — with
+> its extension set, toolbar, and constraints already decided. The name is deliberate: these are
+> blocks you place, not a single editor you configure.
+
+Editor Blocks exists because most projects build the same rich-text editor twice — once for a
+comment field, once for a blog body — and the two implementations drift apart. It packages editors
+the way shadcn/ui packages components: a small, opinionated, readable implementation you own once
+you copy it.
+
+**Status:** active, pre-1.0. All shipped modules are currently powered by TipTap v3. The
+architecture is engine-agnostic by design so the catalogue can later include Lexical,
+ProseMirror, BlockNote, Slate, and Quill without changing the module contract.
+
+**Not yet published to npm.** The repository ships readable source intended to be vendored.
+
+## How to use this file
+
+If you are an AI agent or automated tool, this manifest is the canonical map of the project.
+- To add or inspect a module, read `constants/module-registry.ts` first. It is the single source
+  of truth and every page derives from it.
+- For setup and mounting, read `/documentation/getting-started`.
+- For props, context API, and extension presets, read `/documentation/api`.
+- For the runtime data flow, read `/documentation/architecture`.
+- To contribute a module, read `/documentation/custom-modules`.
+
+## Modules
+
+Each module below is a complete, drop-in editor. All are powered by TipTap v3.31.4.
+
+### Comment Editor
+- ID: `comment`
+- Tier: Minimal | Status: stable
+- Best for: threaded comments and replies, review notes, inline feedback, quick-capture input
+- Capabilities: bold, italic, underline, strike, links with autolink, bullet and ordered lists,
+  blockquotes, inline code, live character count, 2500 character hard limit
+- Extensions: Document, Paragraph, Text, Bold, Italic, Underline, Strike, Code, MarkdownLink,
+  BulletList, OrderedList, ListItem, Blockquote, CharacterCount
+- Live demo: /examples/comment
+- Docs: /documentation/modules/comment
+
+### Content Editor
+- ID: `content`
+- Tier: Rich Content | Status: stable
+- Best for: blog posts and articles, news and editorial content, CMS long-text fields
+- Capabilities: everything in Comment Editor, plus headings H1-H6 with Tailwind sizing, text
+  alignment, subscript and superscript, multi-colour highlight, horizontal rules, smart
+  typography, font family / size / line height, text and background colour
+- Extensions: Heading (custom per-level classes), TextAlign, Subscript, Superscript, Highlight,
+  HorizontalRule, Typography, TextStyle, Color, BackgroundColor, FontFamily, FontSize, LineHeight
+- Live demo: /examples/content
+- Docs: /documentation/modules/content
+
+### Document Editor
+- ID: `document`
+- Tier: Full Featured | Status: stable
+- Best for: documentation and wikis, knowledge bases, technical and legal writing, report authoring
+- Capabilities: everything in Content Editor, plus syntax-highlighted code blocks (lowlight),
+  resizable tables with header rows, collapsible details blocks, image insert / drop / paste,
+  base64 image support, YouTube embed dialog, JSON import and export, character count (textSize)
+- Extensions: CodeBlockLowlight, TableKit, Details, DetailsSummary, DetailsContent, Image,
+  FileHandler, Youtube, CharacterCount
+- Live demo: /examples/docs
+- Docs: /documentation/modules/document
+
+### Presentation Editor
+- ID: `presentation`
+- Tier: Experimental | Status: beta
+- Best for: slide decks and speaker notes, product walkthroughs, structured onboarding guides,
+  course outlines
+- Capabilities: everything in Content Editor, all complex block extensions, character count
+  (textSize), heading-led structure
+- Extensions: all complex extensions, CharacterCount (textSize)
+- Live demo: /examples/presentation
+- Docs: /documentation/modules/presentation
+
+## Documentation
+
+- Overview: /documentation
+- Getting Started: /documentation/getting-started
+- Module Catalogue: /documentation/modules
+- Architecture: /documentation/architecture
+- API Reference: /documentation/api
+- Custom Modules: /documentation/custom-modules
+- Roadmap: /documentation/roadmap
+
+Full-text version for retrieval: /llms-full.txt
+
+## Key routes
+
+- `/` — landing page with an embedded live editor demo
+- `/modules` — searchable, filterable module catalogue
+- `/examples` — index of live demos
+- `/documentation` — documentation section
+- `/llm.txt` — this file
+
+## Technical stack
+
+- Next.js 16 (App Router), React 19, TypeScript 5 strict mode
+- TipTap v3.31.4 as the current editor engine
+- Tailwind CSS 4, shadcn/ui on Radix UI primitives
+- Node.js 20+, npm 10+
+
+## Repository conventions
+
+- Module metadata lives in `constants/module-registry.ts` and nowhere else. The `/modules` page,
+  the documentation section, the sitemap, and this manifest all derive from it. Adding a module
+  means editing that registry plus adding a route — never hand-editing a page to list modules.
+- Module types are a string union (`EditorType`). Adding a value requires a matching entry in
+  the provider's extension map, or the type will compile but fall back to the default preset.
+- Source files carry an `@ai-agent` JSDoc tag describing non-obvious invariants. Read the header
+  comment of a file before changing it.
+- Toolbar items are plain data objects grouped by category, not components. A button that calls
+  a command requires the backing extension to be registered in that module's preset first.
+
+## License
+
+MIT. Copyright Coderooz (https://coderooz.in).

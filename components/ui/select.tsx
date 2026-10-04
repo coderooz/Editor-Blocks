@@ -1,3 +1,11 @@
+/**
+ * @file /components/ui/select.tsx
+ * @description shadcn/ui Select primitives wrapping Radix Select with trigger, content, and animated position handling.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint Radix SelectItem values must be non-empty strings; the toolbar stringifies values before passing them. Keep the Portal/Viewport structure intact so scrolling inside long menus works.
+ * @dependencies Requires @radix-ui/react-select, lucide-react (CheckIcon, ChevronDownIcon, ChevronUpIcon), cn().
+ */
+
 "use client"
 
 import * as React from "react"

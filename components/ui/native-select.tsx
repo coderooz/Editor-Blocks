@@ -1,3 +1,11 @@
+/**
+ * @file /components/ui/native-select.tsx
+ * @description Styled wrapper around a native select element with a decorative chevron.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint Currently unused. Reach for the Radix-based Select in components/ui/select when a menu needs rich content or keyboard-managed focus.
+ * @dependencies Requires lucide-react (ChevronDownIcon), cn().
+ */
+
 import * as React from "react"
 import { ChevronDownIcon } from "lucide-react"
 

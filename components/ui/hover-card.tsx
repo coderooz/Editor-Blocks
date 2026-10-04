@@ -1,3 +1,11 @@
+/**
+ * @file /components/ui/hover-card.tsx
+ * @description shadcn/ui HoverCard primitives wrapping Radix HoverCard for hover-triggered informational panels.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint Currently unused. If adopted, remember hover cards are pointer-only and must have a keyboard-reachable equivalent for accessibility.
+ * @dependencies Requires @radix-ui/react-hover-card, cn().
+ */
+
 "use client"
 
 import * as React from "react"

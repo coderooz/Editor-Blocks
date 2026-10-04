@@ -1,3 +1,11 @@
+/**
+ * @file /components/ui/button.tsx
+ * @description shadcn/ui Button primitive with cva-driven variants and sizes and optional asChild behaviour.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint Any new variant or size must be added through cva so class-merge precedence keeps working. Keep using this instead of raw <button> inside Radix triggers.
+ * @dependencies Requires class-variance-authority (cva), @radix-ui/react-slot, clsx, tailwind-merge via cn().
+ */
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"

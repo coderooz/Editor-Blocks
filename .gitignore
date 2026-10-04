@@ -10,9 +10,6 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
 # next.js
 /.next/
 /out/
@@ -65,12 +62,6 @@ logs/
 # Turbo
 .turbo/
 
-# Test
-*.test.ts
-*.test.tsx
-*.spec.ts
-*.spec.tsx
-
 # Build artifacts
 dist/
 *.tsbuildinfo
@@ -88,8 +79,29 @@ temp/
 
 # MCP
 .mcp-runtime.json
-docs-repo.project-mcp.json
 
 # Vercel
 .vercel/output/
+.vercel
+
+# ---------------------------------------------------------------------------
+# Workspace transient subdirectories (NOT committed)
+#
+# Per GOVERNANCE.md Rule 2, .workspace/ is a development artifact area.
+# These subdirectories hold scratch/session/temporary data and are transient.
+#
+# NOTE: .workspace/PRI/ and .workspace/LFI/ are INTENTIONALLY NOT IGNORED.
+# The PRI and LFI are durable structural + behavioral reference systems that
+# MUST be committed so any agent (or human) can understand the project
+# without manually walking the entire tree. See .workspace/README.md.
+# ---------------------------------------------------------------------------
+.workspace/ai/
+.workspace/sessions/
+.workspace/temp/
+.workspace/logs/
+.workspace/generated/
+.workspace/reports/
+.workspace/research/
+.workspace/planning/
+.workspace/validation/
 .vercel

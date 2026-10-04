@@ -1,3 +1,11 @@
+/**
+ * @file /components/ui/dialog.tsx
+ * @description shadcn/ui Dialog primitives wrapping Radix Dialog, including trigger, content, header, footer, and a close button.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint Radix Trigger renders a <button> by default. Wrap non-trivial buttons (shadcn Button, icon buttons) with asChild to avoid nested-button HTML and hydration errors.
+ * @dependencies Requires @radix-ui/react-dialog, lucide-react (XIcon), cn().
+ */
+
 "use client"
 
 import * as React from "react"

@@ -1,12 +1,32 @@
-/** @format
- * @/constants/EditorExtension.tsx
+/**
+ * @file /constants/EditorExtension.tsx
+ * @description Declares the TipTap extension presets and the heading/list/image customisations shared by all four editor modes.
+ * @architecture Static Configuration Module
+ * @project Editor Blocks — these presets back the modules catalogued in
+ *          @/constants/module-registry. Presets are currently TipTap-specific; the registry's
+ *          `engine` field is what will let a second engine be introduced later.
+ * @ai-hint Register a link extension exactly once — MarkdownLink already extends Link and re-registering Link produces a duplicate 'link' extension. Keep extension names matching the commands used in EditorMenuOptions.
+ * @ai-agent INVARIANT: presets spread upward. DEFAULT ⊂ COMPLEX ⊂ {BLOG, DOCUMENT, PRESENTATION}.
+ *            To add a capability most modules should get, add it to the lowest preset that
+ *            needs it rather than patching each tier — otherwise the tiers stop being
+ *            cumulative and the docs' feature matrix becomes a lie.
+ * @ai-agent INVARIANT: every id in the provider's module → preset map (context/EditorContext.tsx)
+ *            must resolve to a preset exported here. An unresolved id falls back to
+ *            DEFAULT_EXTENSIONS and fails silently.
+ * @ai-agent `createLowlight(all)` bundles every supported language into the client bundle.
+ *            If bundle size becomes a concern, swap to `createLowlight(common)` or register
+ *            only the languages the project actually documents.
+ * @ai-agent Image allows base64 sources and FileHandler accepts pasted/dropped images. The
+ *            editor does not sanitise; consumers must sanitise before persisting HTML.
+ * @ai-agent @deprecated-pending — DEFAULT_EXTENSIONS is the fallback tier, not a published
+ *            module. The `default` EditorType value exists but no route mounts it.
+ * @dependencies Requires @tiptap/core and @tiptap/extension-* packages, MarkdownLink.
  */
 
 import Bold from "@tiptap/extension-bold";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
-import Link from "@tiptap/extension-link";
 import Italic from "@tiptap/extension-italic";
 import Strike from "@tiptap/extension-strike";
 import Underline from "@tiptap/extension-underline";
@@ -17,6 +37,7 @@ import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
 import Typography from "@tiptap/extension-typography";
 import { Heading as BaseHeading } from "@tiptap/extension-heading";
+import type { Level } from "@tiptap/extension-heading";
 import { mergeAttributes } from "@tiptap/core";
 import Youtube from "@tiptap/extension-youtube";
 import { CharacterCount, UndoRedo } from "@tiptap/extensions";
@@ -74,7 +95,7 @@ const Heading = BaseHeading.extend({
   addOptions() {
     return {
       ...this.parent?.(),
-      levels: [1, 2, 3, 4, 5, 6] as number[],
+      levels: [1, 2, 3, 4, 5, 6] as Level[],
       HTMLAttributes: {},
       levelClassMap: {
         1: "text-4xl font-bold leading-tight mt-0 mb-4",
@@ -83,11 +104,11 @@ const Heading = BaseHeading.extend({
         4: "text-xl font-medium mt-6 mb-2",
         5: "text-lg font-medium mt-6 mb-2",
         6: "text-base font-normal mt-6 mb-1",
-      } as Record<number, string>,
+      } as Record<Level, string>,
     };
   },
-  renderHTML({ node, HTMLAttributes }: { node: { attrs: { level: number } }; HTMLAttributes: Record<string, unknown> }) {
-    const level = node.attrs.level;
+  renderHTML({ node, HTMLAttributes }) {
+    const level = node.attrs["level"] as Level;
     const options = this.options as unknown as { levelClassMap: Record<number, string>; HTMLAttributes: Record<string, unknown> };
     const levelClass = options.levelClassMap[level] || "";
     return [
@@ -97,6 +118,55 @@ const Heading = BaseHeading.extend({
       }),
       0,
     ];
+  },
+});
+
+/**
+ * Basic formatting shared by every tier.
+ *
+ * @ai-agent These are configured ONCE and spread into both the base and the complex tier.
+ *            Configuring the same extension separately in two presets registers it twice and
+ *            TipTap logs a duplicate-extension warning, so never inline them again in
+ *            COMPLEX_EXTENSIONS.
+ * @ai-agent The base tier needs them because MENU_BTN_ITEMS renders a Strike button and the
+ *            comment module's seed content carries <code>, <ul> and <ol>. Before this split
+ *            the base tier had none of them: clicking Strike threw
+ *            `toggleStrike is not a function` and the seeded lists were flattened into plain
+ *            paragraphs on load, while the registry advertised all of them as shipped.
+ */
+const StrikeExt = Strike.configure({
+  HTMLAttributes: {
+    class: "line-through text-gray-500",
+  },
+});
+
+const CodeExt = Code.configure({
+  HTMLAttributes: {
+    class: "bg-gray-100 px-1 rounded text-sm font-mono",
+  },
+});
+
+const BulletListExt = BulletList.configure({
+  itemTypeName: "listItem",
+  keepAttributes: true,
+  keepMarks: true,
+  HTMLAttributes: {
+    class: "list-disc list-outside mb-4 space-y-2 pl-6",
+  },
+});
+
+const OrderedListExt = OrderedList.configure({
+  itemTypeName: "listItem",
+  keepMarks: true,
+  keepAttributes: true,
+  HTMLAttributes: {
+    class: "list-decimal list-outside mb-4 space-y-2 pl-6",
+  },
+});
+
+const ListItemExt = ListItem.configure({
+  HTMLAttributes: {
+    class: "mb-1",
   },
 });
 
@@ -111,16 +181,17 @@ export const DEFAULT_EXTENSIONS = [
   Italic.configure(baseAttr),
   Bold.configure(baseAttr),
   Underline.configure(baseAttr),
-  Link.configure({
+  CodeExt,
+  StrikeExt,
+  BulletListExt,
+  OrderedListExt,
+  ListItemExt,
+  // `MarkdownLink` IS `Link` plus a `[label](url)` input rule. Register only one
+  // of the two — registering both yields two extensions named "link".
+  MarkdownLink.configure({
     openOnClick: true,
     autolink: true,
     defaultProtocol: "http",
-    HTMLAttributes: {
-      class: "text-blue-600 hover:underline hover:opacity-80",
-    },
-  }),
-  MarkdownLink.configure({
-    openOnClick: true,
     HTMLAttributes: {
       class: "text-blue-600 hover:underline hover:opacity-80",
     },
@@ -139,12 +210,9 @@ export const DEFAULT_EXTENSIONS = [
 ];
 
 export const COMPLEX_EXTENSIONS = [
+  // Code, Strike and the three list extensions are inherited from DEFAULT — do not
+  // re-declare them here or TipTap registers each one twice.
   ...DEFAULT_EXTENSIONS,
-  Code.configure({
-    HTMLAttributes: {
-      class: "bg-gray-100 px-1 rounded text-sm font-mono",
-    },
-  }),
   CodeBlockLowlight.configure({
     lowlight,
     exitOnTripleEnter: false,
@@ -160,11 +228,6 @@ export const COMPLEX_EXTENSIONS = [
     multicolor: true,
     HTMLAttributes: {
       class: "bg-yellow-200 text-yellow-900",
-    },
-  }),
-  Strike.configure({
-    HTMLAttributes: {
-      class: "line-through text-gray-500",
     },
   }),
   Subscript.configure({
@@ -189,27 +252,6 @@ export const COMPLEX_EXTENSIONS = [
   }),
   LineHeight.configure({
     types: ["textStyle"],
-  }),
-  BulletList.configure({
-    itemTypeName: "listItem",
-    keepAttributes: true,
-    keepMarks: true,
-    HTMLAttributes: {
-      class: "list-disc list-outside mb-4 space-y-2 pl-6",
-    },
-  }),
-  OrderedList.configure({
-    itemTypeName: "listItem",
-    keepMarks: true,
-    keepAttributes: true,
-    HTMLAttributes: {
-      class: "list-decimal list-outside mb-4 space-y-2 pl-6",
-    },
-  }),
-  ListItem.configure({
-    HTMLAttributes: {
-      class: "mb-1",
-    },
   }),
   Details.configure({
     HTMLAttributes: {
@@ -307,6 +349,16 @@ export const COMMENT_EXTENSIONS = [
   ...DEFAULT_EXTENSIONS,
   CharacterCount.configure({
     limit: 2500,
-    mode: "nodeSize",
+    // textSize, not nodeSize: the registry and the docs promise a "2,500 character"
+    // ceiling, and nodeSize counts structural markup, so the cap fired a few characters
+    // early and disagreed with the counter the user actually sees.
+    mode: "textSize",
+  }),
+];
+
+export const PRESENTATION_EXTENSIONS = [
+  ...COMPLEX_EXTENSIONS,
+  CharacterCount.configure({
+    mode: "textSize",
   }),
 ];

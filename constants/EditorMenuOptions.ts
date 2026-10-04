@@ -1,8 +1,11 @@
-/** @format
- * @file EditorMenuOptions.ts
- * @description Defines the configuration for the editor toolbar menu items (buttons, dropdowns, etc.)
- * used in the TipTap rich text editor. Includes menu item types, groupings, and their behaviors.
+/**
+ * @file /constants/EditorMenuOptions.ts
+ * @description Declarative toolbar menu item definitions (buttons, dropdowns, inputs, and dialog models) grouped per editor mode.
+ * @architecture Static Configuration Module
+ * @ai-hint Each item needs a title, group, type, and either action or model; group values drive the toolbar separators so keep them consistent across presets. Never ship console output from an action.
+ * @dependencies Requires type Editor from @tiptap/react, link/image/youtube/ImportExport models, lucide-react, @/components/icons/brand-icons.
  */
+
 import React from "react";
 import type { Editor } from "@tiptap/react";
 import {
@@ -34,7 +37,6 @@ import {
   ListIndentDecrease,
   Baseline,
   PaintBucket,
-  Youtube,
   Table,
   TableColumnsSplit,
   TableRowsSplit,
@@ -43,6 +45,7 @@ import {
   Download,
   Upload,
 } from "lucide-react";
+import { Youtube } from "@/components/icons/brand-icons";
 import YoutubeModel from "@/models/youtube";
 import ImageModel from "@/models/image";
 import LinkModel from "@/models/link";
@@ -237,6 +240,44 @@ export const MENU_BTN_ITEMS: MenuItem[] = [
   },
 ];
 
+/**
+ * Formatting buttons the comment module exposes but the minimal toolbar lacked.
+ *
+ * @ai-agent The registry advertises "Bullet and ordered lists" and "Inline code" for the
+ *            comment module, and its seed content demonstrates both, yet the comment toolbar
+ *            only ever rendered Undo/Redo/Bold/Italic/Underline/Strike — so the advertised
+ *            features were unreachable. These three items are declared once and shared with
+ *            COMPLEX_MENU so the same command never drifts between toolbars.
+ * @ai-agent Safe only because the base extension tier now ships Code/BulletList/OrderedList.
+ *            A menu item whose command has no backing extension throws on click.
+ */
+const CODE_MENU_ITEM: MenuItem = {
+  title: "Code",
+  icon: Code,
+  group: "insert",
+  type: "button",
+  isActive: (editor) => editor.isActive("code"),
+  action: (editor) => editor.chain().focus().toggleCode().run(),
+};
+
+const BULLET_LIST_MENU_ITEM: MenuItem = {
+  title: "Bullet List",
+  icon: List,
+  group: "lists",
+  type: "button",
+  isActive: (editor) => editor.isActive("bulletList"),
+  action: (editor) => editor.chain().focus().toggleBulletList().run(),
+};
+
+const ORDERED_LIST_MENU_ITEM: MenuItem = {
+  title: "Ordered List",
+  icon: ListOrdered,
+  group: "lists",
+  type: "button",
+  isActive: (editor) => editor.isActive("orderedList"),
+  action: (editor) => editor.chain().focus().toggleOrderedList().run(),
+};
+
 export const COMPLEX_MENU: MenuItem[] = [
   {
     title: "Subscript",
@@ -326,14 +367,7 @@ export const COMPLEX_MENU: MenuItem[] = [
       return level ? level.toString() : "";
     },
   },
-  {
-    title: "Code",
-    icon: Code,
-    group: "insert",
-    type: "button",
-    isActive: (editor) => editor.isActive("code"),
-    action: (editor) => editor.chain().focus().toggleCode().run(),
-  },
+  CODE_MENU_ITEM,
   {
     title: "Details",
     icon: NotebookTabs,
@@ -365,22 +399,8 @@ export const COMPLEX_MENU: MenuItem[] = [
         .run();
     },
   },
-  {
-    title: "Bullet List",
-    icon: List,
-    group: "lists",
-    type: "button",
-    isActive: (editor) => editor.isActive("bulletList"),
-    action: (editor) => editor.chain().focus().toggleBulletList().run(),
-  },
-  {
-    title: "Ordered List",
-    icon: ListOrdered,
-    group: "lists",
-    type: "button",
-    isActive: (editor) => editor.isActive("orderedList"),
-    action: (editor) => editor.chain().focus().toggleOrderedList().run(),
-  },
+  BULLET_LIST_MENU_ITEM,
+  ORDERED_LIST_MENU_ITEM,
   {
     title: "Indent",
     icon: ListIndentDecrease,
@@ -388,8 +408,6 @@ export const COMPLEX_MENU: MenuItem[] = [
     type: "button",
     action: (editor) => {
       editor.chain().focus().sinkListItem("listItem").run();
-      const data = editor.getHTML();
-      console.log(data);
     },
   },
   {
@@ -483,7 +501,6 @@ export const COMPLEX_MENU: MenuItem[] = [
     group: "insert",
     icon: Table,
     type: "button",
-    // isActive(editor) {},
     action: (editor) =>
       editor
         .chain()
@@ -496,7 +513,6 @@ export const COMPLEX_MENU: MenuItem[] = [
     icon: Image,
     type: "model",
     group: "insert",
-    // isActive: (editor) => editor.,
     model: {
       title: "Image Insert",
       description: "Add image in the document",
@@ -515,6 +531,22 @@ export const COMPLEX_MENU: MenuItem[] = [
       content: (editor) => React.createElement(LinkModel, { editor }),
     },
   },
+];
+
+/**
+ * Toolbar for the `comment` module.
+ *
+ * @ai-agent MENU_BTN_ITEMS alone was not enough: the registry lists bullet lists, ordered
+ *            lists and inline code as comment features and the seed content demonstrates
+ *            them, but no button reached them. Keep this array in step with
+ *            COMMENT_EXTENSIONS — every item here must have a backing extension, and every
+ *            advertised comment feature needs an item here.
+ */
+export const COMMENT_MENU: MenuItem[] = [
+  ...MENU_BTN_ITEMS,
+  BULLET_LIST_MENU_ITEM,
+  ORDERED_LIST_MENU_ITEM,
+  CODE_MENU_ITEM,
 ];
 
 /**

@@ -1,3 +1,11 @@
+/**
+ * @file /components/ui/tabs.tsx
+ * @description shadcn/ui Tabs primitives wrapping Radix Tabs for tabbed panels used by the model dialogs.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint TabsTrigger values must match the TabsContent values exactly; mismatched values render an empty panel with no error.
+ * @dependencies Requires @radix-ui/react-tabs, cn().
+ */
+
 "use client"
 
 import * as React from "react"

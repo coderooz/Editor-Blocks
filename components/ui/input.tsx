@@ -1,3 +1,11 @@
+/**
+ * @file /components/ui/input.tsx
+ * @description shadcn/ui Input primitive applying consistent border, focus ring, and validation styling to a native input.
+ * @architecture Next.js App Router (Client Component)
+ * @ai-hint type is forwarded explicitly before {...props} so callers can override it. Controlled inputs here need an explicit aria-label or label association.
+ * @dependencies Requires cn().
+ */
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
