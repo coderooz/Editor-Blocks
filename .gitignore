@@ -105,3 +105,4 @@ temp/
 .workspace/planning/
 .workspace/validation/
 .vercel
+.env*

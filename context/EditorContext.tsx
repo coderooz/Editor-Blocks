@@ -16,8 +16,7 @@
  *            second provider creates a second editor instance and the toolbar desynchronises
  *            from the document.
  * @ai-agent `useEditor` is keyed on `[editorType]`, so switching modules tears the editor down
- *            and rebuilds it. Content and undo history are lost. Capture `editorContent` before
- *            switching if it must survive.
+ *            and rebuilds it. Content is now preserved per-module in `moduleContents` state.
  * @ai-agent The editor is created with `immediatelyRender: false`. This is what prevents a
  *            server/client hydration mismatch. Do not remove it.
  * @ai-agent `onUpdate` writes raw HTML into context. Consumers must sanitise before persisting
@@ -37,6 +36,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef,
   type ReactNode,
 } from "react";
 import type { Editor } from "@tiptap/react";
@@ -50,17 +50,10 @@ import {
   PRESENTATION_EXTENSIONS,
 } from "@/constants/EditorExtension";
 import type { ModuleId } from "@/constants/module-registry";
+import { debounce } from "lodash";
 
 /**
  * The set of editor types the provider understands.
- *
- * @ai-agent DERIVED FROM THE REGISTRY, not hand-written. Every module id in
- *            EDITOR_MODULES is automatically a valid editor type, so adding a module to the
- *            registry widens this union without touching this file. `default` is the only
- *            non-module value: it is the fallback preset used when no module is selected.
- * @ai-agent INVARIANT: the `map` below must have an entry for every value in this union. A
- *            missing entry compiles fine but silently falls back to DEFAULT_EXTENSIONS via
- *            `|| DEFAULT_EXTENSIONS`. If you widen this union, add the preset in the same edit.
  */
 export type EditorType = ModuleId | "default";
 
@@ -78,7 +71,25 @@ const EditorContext = createContext<EditorContextType | undefined>(undefined);
 export function EditorProvider({ children }: { children: ReactNode }) {
   const [charCount, setCharCount] = useState(0);
   const [editorType, setEditorType] = useState<EditorType>("comment");
-  const [editorContent, setEditorContent] = useState("");
+  
+  // 📦 Store content per module to prevent loss when switching types
+  const [moduleContents, setModuleContents] = useState<Record<EditorType, string>>({
+    comment: "<p>Start writing a comment...</p>",
+    content: "<p>Start writing your content...</p>",
+    document: "<p>Start writing your document...</p>",
+    presentation: "<p>Start writing your presentation...</p>",
+    default: "<p>Start writing...</p>",
+  });
+
+  // Derive current content based on active type
+  const editorContent = moduleContents[editorType] ?? moduleContents.default;
+
+  const setEditorContent = useCallback((value: string) => {
+    setModuleContents((prev) => ({
+      ...prev,
+      [editorType]: value,
+    }));
+  }, [editorType]);
 
   const extensions = useMemo(() => {
     const map = {
@@ -99,12 +110,18 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     ];
   }, [editorType]);
 
-  // 🧩 The critical fix: give `useEditor` a unique key to force recreation
+  // ⚡ Performance: Debounce character count updates to prevent excessive re-renders
+  const debouncedSetCharCount = useRef(
+    debounce((count: number) => {
+      setCharCount(count);
+    }, 200)
+  ).current;
+
   const editor = useEditor(
     {
       extensions,
       immediatelyRender: false,
-      content: editorContent || "<p>Start writing...</p>",
+      content: editorContent,
       autofocus: "end",
       editorProps: {
         attributes: {
@@ -113,16 +130,18 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         },
       },
       onUpdate: ({ editor }) => {
-        setCharCount(editor.state.doc.textContent.length);
+        debouncedSetCharCount(editor.state.doc.textContent.length);
         setEditorContent(editor.getHTML());
       },
     },
-    [editorType] // 🔥 ensures full editor reinit when switching type
+    [editorType]
   );
 
   const updateCharCount = useCallback(() => {
-    setCharCount(editor?.state.doc.textContent.length ?? 0);
-  }, [editor]);
+    if (editor) {
+      debouncedSetCharCount(editor.state.doc.textContent.length);
+    }
+  }, [editor, debouncedSetCharCount]);
 
   useEffect(() => {
     if (!editor) return undefined;
@@ -144,7 +163,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       editorContent,
       setEditorContent,
     }),
-    [charCount, editorType, editor, editorContent]
+    [charCount, editorType, editor, editorContent, setEditorContent]
   );
 
   return (

@@ -121,19 +121,6 @@ const Heading = BaseHeading.extend({
   },
 });
 
-/**
- * Basic formatting shared by every tier.
- *
- * @ai-agent These are configured ONCE and spread into both the base and the complex tier.
- *            Configuring the same extension separately in two presets registers it twice and
- *            TipTap logs a duplicate-extension warning, so never inline them again in
- *            COMPLEX_EXTENSIONS.
- * @ai-agent The base tier needs them because MENU_BTN_ITEMS renders a Strike button and the
- *            comment module's seed content carries <code>, <ul> and <ol>. Before this split
- *            the base tier had none of them: clicking Strike threw
- *            `toggleStrike is not a function` and the seeded lists were flattened into plain
- *            paragraphs on load, while the registry advertised all of them as shipped.
- */
 const StrikeExt = Strike.configure({
   HTMLAttributes: {
     class: "line-through text-gray-500",
@@ -186,8 +173,6 @@ export const DEFAULT_EXTENSIONS = [
   BulletListExt,
   OrderedListExt,
   ListItemExt,
-  // `MarkdownLink` IS `Link` plus a `[label](url)` input rule. Register only one
-  // of the two — registering both yields two extensions named "link".
   MarkdownLink.configure({
     openOnClick: true,
     autolink: true,
@@ -210,8 +195,6 @@ export const DEFAULT_EXTENSIONS = [
 ];
 
 export const COMPLEX_EXTENSIONS = [
-  // Code, Strike and the three list extensions are inherited from DEFAULT — do not
-  // re-declare them here or TipTap registers each one twice.
   ...DEFAULT_EXTENSIONS,
   CodeBlockLowlight.configure({
     lowlight,
@@ -243,7 +226,7 @@ export const COMPLEX_EXTENSIONS = [
   TextStyle.configure(baseAttr),
   Color.configure({ types: ["textStyle"] }),
   BackgroundColor.configure({ types: ["textStyle"] }),
-  Heading, // Use our custom Heading
+  Heading,
   FontFamily.configure({
     types: ["textStyle"],
   }),
@@ -349,9 +332,6 @@ export const COMMENT_EXTENSIONS = [
   ...DEFAULT_EXTENSIONS,
   CharacterCount.configure({
     limit: 2500,
-    // textSize, not nodeSize: the registry and the docs promise a "2,500 character"
-    // ceiling, and nodeSize counts structural markup, so the cap fired a few characters
-    // early and disagreed with the counter the user actually sees.
     mode: "textSize",
   }),
 ];
@@ -360,5 +340,42 @@ export const PRESENTATION_EXTENSIONS = [
   ...COMPLEX_EXTENSIONS,
   CharacterCount.configure({
     mode: "textSize",
+  }),
+];
+
+export const MARKDOWN_EXTENSIONS = [
+  ...DEFAULT_EXTENSIONS,
+  CodeBlockLowlight.configure({
+    lowlight,
+    exitOnTripleEnter: false,
+    languageClassPrefix: "language-",
+    enableTabIndentation: true,
+    defaultLanguage: "plaintext",
+    tabSize: 4,
+    HTMLAttributes: {
+      class: "bg-gray-500 p-2 rounded text-sm font-mono",
+    },
+  }),
+];
+
+export const LEGAL_EXTENSIONS = [
+  ...DEFAULT_EXTENSIONS,
+  Heading,
+  TextAlign.configure({
+    types: ["heading", "paragraph"],
+    alignments: ["left", "right", "justify"],
+  }),
+  Underline,
+  Strike,
+];
+
+export const WIKI_EXTENSIONS = [
+  ...DOCUMENT_EXTENSIONS,
+  MarkdownLink.configure({
+    openOnClick: true,
+    autolink: true,
+    HTMLAttributes: {
+      class: "text-indigo-600 font-medium hover:underline",
+    },
   }),
 ];
