@@ -334,6 +334,45 @@ export const EDITOR_MODULES = [
       "CharacterCount (textSize)",
     ],
   },
+  {
+    id: "lexical",
+    title: "Lexical Editor",
+    summary: "Meta-backed high-performance editor with exceptional DOM efficiency.",
+    description:
+      "A modern editor framework built by Meta (Facebook) designed for high-throughput content creation, React Native parity, and advanced real-time collaboration. Lexical offers a smaller bundle footprint and more predictable performance characteristics than ProseMirror-based editors, making it ideal for social messaging, docs, and performance-critical applications.",
+    engine: "lexical",
+    engineVersion: "^0.36.0",
+    category: "Rich Content",
+    status: "planned",
+    href: "/examples/lexical",
+    docs: "/documentation/modules/lexical",
+    extensionSet: "LEXICAL_EXTENSIONS",
+    useCases: [
+      "High-performance content platforms",
+      "React Native web parity",
+      "Real-time collaborative editing",
+      "Large-scale document workflows",
+    ],
+    features: [
+      "Zero-plugin core with modular extensions",
+      "Built-in AI compatibility",
+      "Precise selection and range models",
+      "React Native web and native parity",
+      "Superior performance at scale",
+    ],
+    extensions: [
+      "Document",
+      "Paragraph",
+      "Text",
+      "Bold",
+      "Italic",
+      "Heading",
+      "List",
+      "ListItem",
+      "Media",
+      "Table",
+    ],
+  },
 ] as const satisfies readonly EditorModule[];
 
 /**
