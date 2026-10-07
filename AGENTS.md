@@ -11,7 +11,7 @@
   examples site, and documentation
 - **Author:** Ranit Saha (Coderooz)
 - **Repository:** https://github.com/coderooz/Editor-Blocks
-- **Deployment:** https://editor-blocks.vercel.app
+- **Deployment:** https://editorblocks.vercel.app
 
 > Naming history: the project was `simple-tiptap-editor` (v0.1.0), then `tiptap-editor`
 > (v1.0.0), then renamed to `editor-blocks` (v0.3.0). Pre-1.0 again by intent: the product is a

@@ -46,7 +46,7 @@ export function sourceLink(path: string, line?: number): string {
 }
 
 /** Live site origin, used to resolve doc-relative references into absolute URLs. */
-export const SITE_ORIGIN = "https://editor-blocks.vercel.app";
+export const SITE_ORIGIN = "https://editorblocks.vercel.app";
 
 /**
  * Upstream documentation for the libraries the project builds on.

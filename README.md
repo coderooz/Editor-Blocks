@@ -155,7 +155,7 @@ export default function CommentsPage() {
 ```
 
 `EditorPage` resolves the extension preset and toolbar for the id internally. Read the full
-API in the [documentation](https://editor-blocks.vercel.app/documentation).
+API in the [documentation](https://editorblocks.vercel.app/documentation).
 
 ---
 
@@ -183,5 +183,5 @@ npm run lint && npm run typecheck && npm run build
 [MIT](./LICENSE) © Ranit Saha (Coderooz)
 
 - Repository: https://github.com/coderooz/Editor-Blocks
-- Site: https://editor-blocks.vercel.app
+- Site: https://editorblocks.vercel.app
 - Issues: https://github.com/coderooz/Editor-Blocks/issues

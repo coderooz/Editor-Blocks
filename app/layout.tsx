@@ -35,7 +35,7 @@ const geistMono = Geist_Mono({
 });
 
 /** Canonical production origin — used to resolve every relative URL in `metadata`. */
-const SITE_URL = "https://editor-blocks.vercel.app";
+const SITE_URL = "https://editorblocks.vercel.app";
 
 const SITE_NAME = "Editor Blocks";
 const SITE_DESCRIPTION =

@@ -42,7 +42,7 @@ reference:
 | Author         | Ranit Saha (Coderooz) <contact@coderooz.in>                  |
 | License        | MIT                                                          |
 | Repository     | https://github.com/coderooz/Editor-Blocks (public, `main`)   |
-| Deployment     | https://editor-blocks.vercel.app (Vercel)                    |
+| Deployment     | https://editorblocks.vercel.app (Vercel)                    |
 | Local dir name | `Simple-Tiptap-editor` (historical; not the product name)    |
 
 **Naming history:** `simple-tiptap-editor` 0.1.0 → `tiptap-editor` 1.0.0 (TipTap-Editor) →

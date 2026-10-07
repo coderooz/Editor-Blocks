@@ -46,7 +46,9 @@ Version 0.3.0 was set at the rename commit (`7dff887`); there was never an 0.2.0
 - **Version**: 1.0.0 → 0.3.0 — a deliberate reset to pre-1.0 for the new product identity
   (a module catalogue, not a versioned editor core)
 - **Repository**: `coderooz/TipTap-Editor` → `coderooz/Editor-Blocks`
-- **Deployment URL**: `tiptap-editor.vercel.app` → `editor-blocks.vercel.app`
+- **Deployment URL**: `tiptap-editor.vercel.app` → `editorblocks.vercel.app` (the production
+  alias assigned by Vercel — the hyphenated `editor-blocks.vercel.app` was never assigned
+  and 404s; canonical/OG metadata corrected in `app/layout.tsx` to match)
 - `EditorType` is now `ModuleId | "default"` — derived from the registry instead of a
   hand-maintained string union
 - Documentation rewritten to match the shipped architecture: README, AGENTS.md,
