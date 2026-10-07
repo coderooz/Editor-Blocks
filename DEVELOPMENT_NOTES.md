@@ -1,309 +1,241 @@
-# Development Notes — TipTap-Editor
+# Development Notes — Editor Blocks
 
-**Project:** TipTap-Editor  
-**Version:** 1.0.0  
-**Last Updated:** 2026-08-28  
-**Author:** Ranit Saha (Coderooz)  
-**Repository:** https://github.com/coderooz/TipTap-Editor
+> Engineering context for maintaining this repository. Read together with
+> [AGENTS.md](./AGENTS.md) (rules) and the
+> [Project Reference Index](./.workspace/PRI/PROJECT_REFERENCE_INDEX.md) (file map).
 
 ---
 
-## Project Overview
+## 1. What this project is (and is not)
 
-TipTap-Editor is a **professional, production-ready TipTap rich-text editor showcase and reference implementation**. It serves three purposes simultaneously:
+**Is:** a catalogue of drop-in editor *modules* — pre-tuned extension sets + toolbars for
+specific jobs (comment, article, document, presentation, markdown, legal, wiki) — plus the
+site that documents and demos them.
 
-1. **Showcase** — Interactive demonstration of TipTap capabilities
-2. **Reference Implementation** — Canonical patterns for TipTap feature integration
-3. **Reusable Component Library** — Copy/adapt features for other projects
+**Is not:** a single configurable editor. The old identity ("TipTap-Editor — a rich-text
+editor showcase") described a different product shape. The rename to **Editor Blocks**
+(`editor-blocks` v0.3.0) marks the change in intent: modules you place, not an editor you
+configure.
 
----
+Version history (see `CHANGELOG.md`):
 
-## Architecture Summary
+| When           | Package name          | Version | Shape                          |
+| -------------- | --------------------- | ------- | ------------------------------ |
+| 2025-10-30     | `simple-tiptap-editor` | 0.1.0  | Early showcase                 |
+| 2026-09-08     | `tiptap-editor`        | 1.0.0  | "TipTap-Editor" showcase       |
+| 2026-10-04 →   | `editor-blocks`        | 0.3.0  | Module catalogue (current)     |
 
-### Core Stack
-- **Framework:** Next.js 16 (App Router, Turbopack)
-- **Runtime:** React 19 (Server Components by default)
-- **Language:** TypeScript 5 (Strict Mode)
-- **Styling:** Tailwind CSS 4 (CSS Variables, @theme inline)
-- **UI Library:** shadcn/ui + Radix UI primitives
-- **Editor:** TipTap v3.10.1
-- **Icons:** Lucide React 0.548.0
-- **Syntax Highlighting:** Lowlight
-- **Collaboration Ready:** Yjs + y-protocols (dependencies removed from runtime; planned for a future module)
-
-### Key Architectural Patterns
-
-1. **Feature-First Organization** — Each TipTap capability in its own discoverable boundary
-2. **Composable Extension Factory** — `createEditorExtensions({ features: [...] })` for selective inclusion
-3. **Registry-Driven Systems** — Feature registry (SSOT), toolbar registry, bubble menu registry
-4. **Context-Based State** — Single `EditorProvider` with `useEditor` hook, mode switching via key
-5. **Configuration-Driven UI** — Declarative toolbar, bubble menus, dialogs
+The version went **1.0.0 → 0.3.0** deliberately at the rename: the product restarted as a
+pre-1.0 library. There was never a 0.2.0.
 
 ---
 
-## Project Structure (Key Directories)
+## 2. Architecture at a glance
 
 ```
-TipTap-Editor/
-├── app/                          # Next.js App Router pages
-│   ├── page.tsx                  # Landing page with LiveEditorDemo
-│   ├── demo/page.tsx             # Full playground
-│   ├── features/                 # Feature explorer & detail pages
-│   ├── comment/page.tsx          # Comment editor mode
-│   ├── content/page.tsx          # Content/blog editor mode
-│   ├── docs/page.tsx             # Documentation editor mode
-│   ├── layout.tsx                # Root layout + providers
-│   └── globals.css               # Tailwind v4 + CSS variables
-├── components/
-│   ├── editor/                   # Core editor components
-│   ├── toolbar/                  # Toolbar system + registry
-│   ├── bubble-menus/             # Bubble menus + registry
-│   ├── dialogs/                  # Modal dialogs
-│   ├── commands/                 # Command layer + registry
-│   ├── showcase/                 # Showcase UI components
-│   ├── ui/                       # shadcn/ui components
-│   ├── LiveEditorDemo.tsx        # Landing page demo
-│   └── ThemeToggle.tsx           # Dark/light toggle
-├── constants/
-│   ├── tiptap-feature-registry.ts # Feature registry (SSOT)
-│   ├── EditorMenuOptions.ts      # Toolbar definitions
-│   └── EditorStateOptions.ts     # Type definitions
-├── context/
-│   └── EditorContext.tsx         # Global editor state
-├── editor/
-│   ├── core/                     # Editor factory + config
-│   ├── extensions/               # Feature-based extensions
-│   ├── commands/                 # Command layer
-│   ├── state/                    # State management
-│   ├── serializers/              # HTML/JSON/Markdown
-│   └── types/                    # Type definitions
-├── features/                     # Feature-centric implementations
-├── examples/                     # Minimal integration examples
-├── docs/                         # Documentation
-├── tests/                        # Test suite
-├── lib/
-│   └── utils.ts                  # cn() utility
-├── public/                       # Static assets
-├── .workspace/                   # Project workspace docs
-├── PROJECT_REFERENCE_INDEX.md    # PRI (AI reference)
-├── AGENTS.md                     # AI agent instructions
-├── CHANGELOG.md
-└── package.json
+constants/module-registry.ts   ← single source of truth (8 modules)
+        │
+        ├── components/modules/ModulesCatalogue.tsx   (/modules)
+        ├── components/examples/*                     (/examples/*)
+        ├── app/documentation/modules/*               (docs pages)
+        └── public/llm.txt                            (AI manifest, hand-synced)
+
+constants/EditorExtension.tsx   → 9 extension presets
+constants/EditorMenuOptions.ts  → 41 toolbar item definitions (data)
+                │
+                ▼
+context/EditorContext.tsx       → one TipTap instance, preset map, per-module content
+                │
+                ▼
+components/EditorPage.tsx       → toolbar (EditorMenuBar → ToolbarItem) + EditorContent
 ```
 
----
+### Data flow (one request)
 
-## Editor Modes (4)
-
-| Mode | Route | Description | Extension Set |
-|------|-------|-------------|---------------|
-| `comment` | `/comment` | Minimal editor for comments | `COMMENT_EXTENSIONS` |
-| `document` | `/docs` | Full-page editor for documents | `DOCUMENT_EXTENSIONS` |
-| `content` | `/content` | Blog/post-style rich editor | `BLOG_EXTENSIONS` |
-| `default` | `/` | Basic TipTap setup | `DEFAULT_EXTENSIONS` |
-
-**Switching:** `setEditorType("document")` via `useEditorContext()`
-
----
-
-## Extension Composition
-
-### Factory Function
-```typescript
-import { createEditorExtensions } from "@/editor/core/extensions";
-
-const extensions = createEditorExtensions({
-  features: ["basicFormatting", "links", "images", "tables"],
-});
-```
-
-### Preset Configurations
-- `minimal` — Basic formatting + links
-- `comment` — Minimal + character count (2500 limit)
-- `default` — Basic + markdown links + text align + undo/redo
-- `content` — Full blog editor (all features except character count)
-- `document` — Full document editor (all features + character count)
+1. `app/layout.tsx` mounts `EditorProvider` (exactly once) and the site chrome.
+2. A route renders `<EditorPage type="<module-id>" initialContent={...} />`.
+3. `EditorPage` sets `editorType` in context (effect) and applies seed HTML via
+   `editor.commands.setContent()`.
+4. `EditorContext` resolves the preset from its module → preset map and re-creates the
+   editor (`useEditor([editorType])`). Previous module content is kept in `moduleContents`.
+5. `EditorMenuBar` reads `MENU_BY_TYPE[editorType]`, groups items by `group`, and renders
+   each through `ToolbarItem` (`button | dropdown | input | model`).
+6. Commands run through `editor.chain().focus().<command>().run()`; `onUpdate` writes HTML
+   back to context; character count is debounced.
 
 ---
 
-## Key Components
+## 3. Module wiring — the current truth
 
-### EditorContext (`context/EditorContext.tsx`)
-- Global editor state via React Context
-- `useEditorContext()` hook for access
-- Manages: `editor`, `editorType`, `editorContent`, `charCount`
-- Mode switching via `key=[editorType]` for full reinitialization
-- `immediatelyRender: false` prevents hydration mismatch
+Eight modules are registered; **four are fully shipped** (preset + toolbar + sample + route):
 
-### Toolbar System (`components/toolbar/`)
-- **Registry-based** — Features declare toolbar contributions
-- **Types:** `button`, `dropdown`, `input`, `model`, `custom`
-- **Groups:** `history`, `styling`, `fonts`, `insert`, `lists`, `alignment`, `table`, `file`
+| Module         | Preset wired?                         | Route            |
+| -------------- | ------------------------------------- | ---------------- |
+| `comment`      | ✅ `COMMENT_EXTENSIONS`               | ✅               |
+| `content`      | ✅ `BLOG_EXTENSIONS`                  | ✅               |
+| `document`     | ✅ `DOCUMENT_EXTENSIONS`              | ✅               |
+| `presentation` | ✅ `PRESENTATION_EXTENSIONS`          | ✅               |
+| `markdown`     | ⚠️ preset exists, **unwired** (falls back to `DEFAULT_EXTENSIONS`) | ❌ |
+| `legal`        | ⚠️ preset exists, **unwired**         | ❌               |
+| `wiki`         | ⚠️ preset exists, **unwired**         | ❌               |
+| `lexical`      | ⚠️ `LEXICAL_EXTENSIONS` **does not exist** | ❌           |
 
-### Bubble Menus (`components/bubble-menus/`)
-- **BaseBubbleMenu** — Shared styling + positioning
-- **Registry-based** — Node type → menu component mapping
-- **Menus:** Text, Image, Table, YouTube
+Consequences you can observe in the running site:
 
-### Feature Registry (`constants/tiptap-feature-registry.ts`)
-- **Single Source of Truth** for all features
-- Includes: identity, category, extensions, dependencies, paths, reusability score
-- Drives: toolbar, bubble menus, docs, examples, explorer
+- The landing demo exposes tabs for all 8 ids (derived from the registry) + `default`;
+  unshipped ids render with the default preset and default sample.
+- `/modules` and `/examples` link every registry `href` → the four unwired modules link to
+  404 pages.
+- `/documentation/modules/*` pages exist for all 8 (generated from the registry).
 
----
-
-## Development Commands
-
-```bash
-# Install dependencies
-npm install
-
-# Development server
-npm run dev
-
-# Production build
-npm run build
-
-# Start production server
-npm run start
-
-# Linting
-npm run lint
-
-# Type checking
-npm run typecheck
-
-# Husky setup
-npm run prepare
-```
+This is documented rather than fixed: wiring presets and adding routes is product work, not
+documentation work. If you are here to fix it, follow "Add a new module" in `AGENTS.md`
+(steps 2, 3, 7 are the missing pieces).
 
 ---
 
-## Quality Gates (Pre-commit via Husky)
+## 4. Multi-engine foundation
 
-```bash
-npm run lint        # ESLint passes
-npm run typecheck   # TypeScript strict passes
-npm run build       # Production build passes
-```
-
----
-
-## Git Workflow
-
-- **Branch:** `main` (protected)
-- **Commits:** Conventional Commits (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`, `ci:`, `perf:`)
-- **PR Required:** Yes, for all changes to main
-- **Reviews:** At least 1 approval required
+- The registry's `engine` field (`tiptap | lexical`, extensible) lets the UI state honestly
+  what powers each module; `ENGINE_LABELS` renders the label.
+- `src/adapters/lexicalAdapter.ts` defines an `EditorAdapter` seam (the operations the
+  toolbar needs) and a partial Lexical implementation. `lexical` ^0.52.0 is a dependency,
+  but **no module runs on Lexical yet** — the `lexical` module id is `status: "planned"`.
+- `EditorContext` is deliberately engine-neutral at its seam: the module → preset map is
+  where a second engine would branch.
+- Do not advertise engine support beyond this scaffold.
 
 ---
 
-## Deployment
+## 5. Toolbar design
 
-- **Platform:** Vercel
-- **Production URL:** https://tiptap-editor.vercel.app
-- **Auto-deploy:** Push to `main` → production; PR → preview
-- **Vercel Project:** `coderooz-projects/tiptap-editor`
-
----
-
-## Testing Strategy (In Progress)
-
-| Layer | Tool | Target |
-|-------|------|--------|
-| Unit | Vitest | 80% |
-| Integration | Vitest | 70% |
-| E2E | Playwright | Critical paths |
-| Accessibility | axe-core | 100% critical |
-| Visual | Chromatic | Key states |
+- Menu items are **data**, not components: `MenuItem` = `button | dropdown | input | model`
+  (`MenuItemType` also lists `"custom"`, but no `MenuCustom` variant exists and `ToolbarItem`
+ 's `default:` case returns `null` — do not emit `type: "custom"` items).
+- Counts: 41 definitions total — 29 buttons, 4 dropdowns, 3 inputs, 5 dialog triggers.
+- `MENU_BY_TYPE` in `EditorMenuBar.tsx` is a **total** map over `EditorType`; a missing key
+  is a compile error. This exists because `presentation` once shipped with a 6-button toolbar
+  after silently falling through to `MENU_BTN_ITEMS`.
+- `ToolbarItem.tsx` was extracted from `EditorMenuBar` (3773ecb) so the toolbar is
+  polymorphic dispatch + grouping only.
+- Radix `DialogTrigger` renders its own `<button>`: use `asChild` on triggers wrapping a shadcn
+  `Button` (nested buttons are invalid HTML).
 
 ---
 
-## Accessibility
+## 6. State model
 
-- WCAG 2.1 AA compliance target
-- Semantic HTML
-- ARIA labels on interactive elements
-- Keyboard navigation support
-- Focus management in modals
-- Color contrast compliance
-- Reduced motion support
+`EditorContext` exposes:
 
----
+| Field             | Type                          | Notes                                   |
+| ----------------- | ----------------------------- | --------------------------------------- |
+| `editor`          | `Editor \| null`              | guard null before any command           |
+| `editorType`      | `EditorType`                  | `ModuleId \| "default"`                 |
+| `setEditorType`   | `(t) => void`                 | triggers editor re-creation             |
+| `editorContent`   | `string` (HTML)               | current module's content                |
+| `setEditorContent`| `(html) => void`              | `onUpdate` writes here                  |
+| `charCount`       | `number`                      | debounced from editor transactions      |
 
-## Performance
-
-- `immediatelyRender: false` in TipTap
-- Dynamic imports for heavy components
-- Memoized editor extensions
-- Optimized images with `next/image`
-- Bundle analysis via `@next/bundle-analyzer`
-
----
-
-## Security
-
-- No secrets in code
-- Input validation on all user inputs
-- HTML sanitization for editor output (DOMPurify recommended)
-- CSP headers via `next.config.ts`
-- Rate limiting for API routes (when added)
+- Per-module content lives in `moduleContents: Record<EditorType, string>` — switching
+  modules preserves each module's draft; **undo history is not preserved** (the editor is
+  re-created).
+- The provider owns one instance; `immediatelyRender: false` keeps SSR safe.
+- Initial `editorType` is `"comment"`; the landing demo starts on the `"content"` tab.
 
 ---
 
-## Known Issues / Technical Debt
+## 7. CI/CD
 
-1. **Test Suite** — In progress (Vitest + Playwright setup)
-2. **CI/CD Pipeline** — GitHub Actions planned
-3. **Dependabot** — Configuration planned
-4. **Error Boundaries** — Not yet implemented
-5. **Analytics** — Not configured
-6. **Collaborative Editing** — Yjs deps installed, demo planned
-7. **Command Palette** — cmdk installed, integration pending
-8. **Markdown Export** — Only input rule implemented, full export pending
+`.github/workflows/ci.yml` jobs: `lint-and-typecheck`, `build`, `test`, `deploy-preview`
+(PR), `deploy-production` (push to `main`).
 
----
+**Historical failure mode (fixed):** every run failed at 0s with 0 jobs because step-level
+`if:` used the `secrets` context (`${{ secrets.VERCEL_TOKEN != '' }}`). GitHub rejects a
+workflow containing that before starting any job. The fix maps secrets to job-level `env:`
+and tests `env.VERCEL_TOKEN != ''` at step level — the `env` context is legal in `if:`.
 
-## Future Enhancements (Prioritized)
-
-1. Complete test suite (Vitest + Playwright)
-2. CI/CD pipeline with GitHub Actions
-3. Dependabot for dependency updates
-4. Error boundaries
-5. Analytics integration
-6. Collaborative editing (Yjs) demo
-7. More editor modes
-8. Accessibility audit (WCAG 2.1 AA)
-9. Dark mode support
-10. Keyboard shortcuts documentation
-11. Command palette (cmdk integration)
-12. Full Markdown import/export
+Current repo state: **no GitHub secrets configured** (`VERCEL_TOKEN`/`ORG_ID`/`PROJECT_ID`
+absent) → deploy steps skip cleanly; the Vercel Git integration performs actual deploys.
+If CI secrets are ever added, the deploy steps activate without further edits.
 
 ---
 
-## Important Files for AI Context
+## 8. Quality tooling
 
-When working on this project, read in this order:
+| Gate          | Command             | State now                          |
+| ------------- | ------------------- | ---------------------------------- |
+| Lint          | `npm run lint`      | 0 errors, 18 warnings (pre-existing) |
+| Types         | `npm run typecheck` | clean                              |
+| Build         | `npm run build`     | clean (all routes prerender)       |
+| Tests         | `npm test --if-present` | no-op (no suite configured)    |
 
-1. `AGENTS.md` — Project-specific AI instructions
-2. `PROJECT_REFERENCE_INDEX.md` — Full project reference
-3. `context/EditorContext.tsx` — Core state management
-4. `constants/tiptap-feature-registry.ts` — Feature registry (SSOT)
-5. `constants/EditorExtension.tsx` — TipTap extension configs
-5. `constants/EditorMenuOptions.ts` — Toolbar configuration
-6. `components/editor/EditorCore.tsx` — Main editor component
-7. `components/toolbar/Toolbar.tsx` — Toolbar rendering
-8. `components/bubble-menus/*.tsx` — Context menus
-9. `components/extensions/*.ts` — Custom extensions
-10. `components/dialogs/*.tsx` — Modal dialogs
+- ESLint 9 flat config (`eslint.config.mjs`); `consistent-type-imports` is enforced —
+  type-only imports must use `import type`.
+- Husky 9 + lint-staged run on commit; `prepare` prints a deprecation notice for
+  `husky install` but exits 0.
+- There is no `.eslintrc.json` and no `docs/` directory (older `CODEOWNERS` referenced both —
+  corrected).
 
 ---
 
-## Contact
+## 9. Environment & config
 
-**Author:** Ranit Saha (Coderooz)  
-**Email:** contact@coderooz.in  
-**Website:** https://coderooz.in  
-**GitHub:** https://github.com/coderooz  
-**Repository:** https://github.com/coderooz/TipTap-Editor  
-**Live Demo:** https://tiptap-editor.vercel.app
+- `.env.local` (gitignored) currently holds a Vercel OIDC token for local `vercel` CLI use.
+  **Never commit it.** No other env vars are required to run the site locally.
+- `vercel.json` defines one redirect (`/presentation` → `/examples/presentation`) and one
+  rewrite (`/editor/:mode` → `/:mode`, legacy).
+- `metadataBase` in `app/layout.tsx` must stay pinned to the production origin or OG images
+  and the `/llm.txt` link resolve against localhost.
+- `opencode.jsonc`:
+  - `instructions` now points at `.workspace/PRI/PROJECT_REFERENCE_INDEX.md` (the root-level
+    `PROJECT_REFERENCE_INDEX.md` was deleted when the PRI moved into `.workspace/`).
+  - `MCP_PROJECT` remains `simple-tiptap-editor` on purpose — it is the **storage key** for
+    the local memory server. Renaming it would orphan every context stored under the old
+    key. It is not a product name.
+
+---
+
+## 10. Documentation systems
+
+| Artefact                  | Path                                    | Role |
+| ------------------------- | --------------------------------------- | ---- |
+| README                    | `README.md`                             | Product overview |
+| Agent rules               | `AGENTS.md`                             | Binding rules for AI agents |
+| This file                 | `DEVELOPMENT_NOTES.md`                  | Engineering context |
+| Changelog                 | `CHANGELOG.md`                          | Keep-a-Changelog history |
+| PRI                       | `.workspace/PRI/PROJECT_REFERENCE_INDEX.md` | File-level reference index (committed) |
+| LFI                       | `.workspace/LFI/`                       | Behavioural flows + diagrams (committed) |
+| AI manifests              | `public/llm.txt`, `public/llms-full.txt` | Canonical map / full reference for agents |
+
+Governance rules (workspace, reports, naming) live in `~/.config/opencode/GOVERNANCE.md` and
+`.workspace/README.md`. `.workspace/` scratch subdirectories are gitignored; **PRI and LFI are
+intentionally tracked** so a fresh clone carries them.
+
+---
+
+## 11. Known gaps / follow-ups
+
+1. Four registry modules lack `/examples/*` routes (their links 404).
+2. `markdown`/`legal`/`wiki` presets unwired in `EditorContext`; `LEXICAL_EXTENSIONS` missing.
+3. `public/llm.txt` / `llms-full.txt` describe four shipped modules; the registry lists eight
+   (manifests hand-synced — update them together with the registry).
+4. `package.json` description still says "the first release ships four modules" (accurate for
+   *shipped* demos; the registry is the authority on total count).
+5. No automated tests.
+6. `plugin/` scaffold unpublished (`@coderooz/tiptap-editor`, its own `tsup` build); the
+   README there documents a package that does not exist on npm yet.
+7. Older `.workspace/*.md` root reports (`PROJECT_CONTEXT_REPORT.md`,
+   `CHATGPT_CONTEXT_REPORT.md`, `TIPTAP_SHOWCASE_*`, `TODO_PORTFOLIO.md`) are **historical
+   artefacts of the pre-rename product** — kept for traceability, superseded by the PRI.
+
+---
+
+## 12. Debugging checklist
+
+1. Editor renders but toolbar dead → `editor` is null; guard before commands.
+2. Wrong toolbar/buttons for a module → `MENU_BY_TYPE` entry, not the component.
+3. Wrong features enabled → preset map in `EditorContext.tsx` (check for `|| DEFAULT_EXTENSIONS`
+   fallback).
+4. Duplicate `link` extension warning → `MarkDownLink` and stock `Link` both registered.
+5. Toolbar desync after adding a page → second `EditorProvider` mounted.
+6. CI fails at 0s → search the workflow for `secrets.` inside `if:`.

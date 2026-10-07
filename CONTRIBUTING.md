@@ -1,6 +1,6 @@
-# Contributing to Simple-Tiptap-editor
+# Contributing to Editor Blocks
 
-Thank you for your interest in contributing to Simple-Tiptap-editor! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Editor Blocks! This document provides guidelines and instructions for contributing.
 
 ## Table of Contents
 
@@ -23,12 +23,12 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/Simple-Tiptap-editor.git
-   cd Simple-Tiptap-editor
+   git clone https://github.com/YOUR_USERNAME/Editor-Blocks.git
+   cd Editor-Blocks
    ```
 3. Add the upstream remote:
    ```bash
-   git remote add upstream https://github.com/coderooz/Simple-Tiptap-editor.git
+   git remote add upstream https://github.com/coderooz/Editor-Blocks.git
    ```
 4. Install dependencies:
    ```bash
@@ -54,11 +54,11 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### Available Scripts
 
 ```bash
-npm run dev      # Start development server
-npm run build    # Build for production
-npm run start    # Start production server
-npm run lint     # Run ESLint
-npx tsc --noEmit # Type checking
+npm run dev        # Start development server
+npm run build      # Build for production
+npm run start      # Start production server
+npm run lint       # Run ESLint
+npm run typecheck  # Type checking (tsc --noEmit)
 ```
 
 ## Making Changes
@@ -74,14 +74,18 @@ Use descriptive branch names following this pattern:
 - `chore/description` - Maintenance tasks
 - `test/description` - Adding tests
 
-### Editor Modes
+### Editor Modules
 
-When making changes to the editor, test all four modes:
+When making changes to the editor, test all shipped modules:
 
-1. **Comment** (`/comment`) - Minimal editor for comments
-2. **Document** (`/docs`) - Full-page editor for documents
-3. **Content** (`/content`) - Blog/post-style rich editor
-4. **Default** (`/`) - Basic TipTap setup
+1. **Comment** (`/examples/comment`) - Minimal editor for comments
+2. **Content** (`/examples/content`) - Blog/post-style rich editor
+3. **Document** (`/examples/docs`) - Full-featured document editor
+4. **Presentation** (`/examples/presentation`) - Slide-shaped content (beta)
+5. **Default** (`/`) - Basic editor on the landing demo
+
+Plus the module switcher on `/` and the catalogue at `/modules`. See the "Known Gaps"
+section of `AGENTS.md` for modules that are registered but not yet fully shipped.
 
 ### Adding New Features
 
@@ -89,7 +93,7 @@ When making changes to the editor, test all four modes:
 2. Follow shadcn/ui component patterns for new UI
 3. Add new extensions to `constants/EditorExtension.tsx`
 4. Add new toolbar items to `constants/EditorMenuOptions.ts`
-5. Update types in `constants/EditorStateOptions.tsx` if needed
+5. Register new modules in `constants/module-registry.ts` (single source of truth)
 
 ### Adding New Toolbar Buttons
 
@@ -131,9 +135,9 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 ### Examples
 
 ```
-feat(editor): add new highlight extension
-fix(bubble-menu): resolve image resize issue
-refactor(context): simplify editor state management
+feat(modules): add wiki module route
+fix(toolbar): restore document menu grouping
+refactor(context): simplify preset map
 docs(readme): update installation instructions
 ```
 
@@ -148,7 +152,7 @@ docs(readme): update installation instructions
 2. Run quality checks:
    ```bash
    npm run lint
-   npx tsc --noEmit
+   npm run typecheck
    npm run build
    ```
 

@@ -6,11 +6,11 @@ We release patches for security vulnerabilities. Which versions are eligible for
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
+| 0.3.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
-We take the security of Simple-Tiptap-editor seriously. If you believe you have found a security vulnerability, please report it to us as described below.
+We take the security of Editor Blocks seriously. If you believe you have found a security vulnerability, please report it to us as described below.
 
 ### How to Report
 

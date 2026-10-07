@@ -28,7 +28,7 @@ If you are an AI agent or automated tool, this manifest is the canonical map of 
 
 ## Modules
 
-Each module below is a complete, drop-in editor. All are powered by TipTap v3.31.4.
+Each module below ships with a live demo. All shipped modules are powered by TipTap v3.31.4.
 
 ### Comment Editor
 - ID: `comment`
@@ -75,6 +75,22 @@ Each module below is a complete, drop-in editor. All are powered by TipTap v3.31
 - Extensions: all complex extensions, CharacterCount (textSize)
 - Live demo: /examples/presentation
 - Docs: /documentation/modules/presentation
+
+### Registered but not fully shipped
+
+Four further modules are declared in `constants/module-registry.ts` (the catalogue lists eight
+in total). They have documentation pages but **no live demo route yet** — their registry
+`href`s currently 404:
+
+| Module          | ID          | Status   | Notes                                                                 |
+| --------------- | ----------- | -------- | --------------------------------------------------------------------- |
+| Markdown Editor | `markdown`  | stable   | Preset `MARKDOWN_EXTENSIONS` exists but is not wired (falls back to default preset); no `/examples/markdown` route |
+| Legal Editor    | `legal`     | stable   | Preset `LEGAL_EXTENSIONS` exists but is not wired; no `/examples/legal` route |
+| Wiki Editor     | `wiki`      | beta     | Preset `WIKI_EXTENSIONS` exists but is not wired; no `/examples/wiki` route |
+| Lexical Editor  | `lexical`   | planned  | Engine: Lexical. Scaffold only (`src/adapters/`); `LEXICAL_EXTENSIONS` does not exist; no `/examples/lexical` route |
+
+Counts: **4 modules fully shipped** (registry entry + wired preset + toolbar + sample +
+route), **8 registered** total.
 
 ## Documentation
 

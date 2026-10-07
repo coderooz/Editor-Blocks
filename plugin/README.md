@@ -1,5 +1,11 @@
 # @coderooz/tiptap-editor
 
+> **Status: scaffold — NOT published to npm.** This directory is a standalone package
+> scaffold kept as a reference for eventually publishing the Editor Blocks editor as a
+> library. `npm install @coderooz/tiptap-editor` will fail until it is published. It has its
+> own `package.json` and `tsup` build, is not part of the Next.js app build, and is
+> independent of the site's `editor-blocks` package version.
+
 Ready-to-use TipTap editor components for Next.js projects. Like shadcn/ui, but for rich text editors.
 
 ## Installation

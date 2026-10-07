@@ -3,637 +3,339 @@
 ```yaml
 reference:
   name: PROJECT_REFERENCE_INDEX
-  version: 2.0
+  version: 3.0
   status: active
-  last_verified: 2026-10-01
+  last_verified: 2026-10-07
   verification_scope: full
   verification_method: STRUCTURAL
   project_root: C:\Code_Works\HTML_CSS_JS\workProjects\website\Simple-Tiptap-editor
 ```
 
-**Project:** TipTap-Editor
-**Version:** 1.0.0
-**Repository:** https://github.com/coderooz/TipTap-Editor
-**Deployment:** https://tiptap-editor.vercel.app
-**Companion:** `.workspace/LFI/LOGIC_FLOW_INDEX.md` (behavioral map)
-
-> **Priority rule (PRI governance §26):** the actual repository filesystem is the
-> source of truth. If this document conflicts with the filesystem, the filesystem
-> wins and this file must be repaired.
+**Project:** Editor Blocks (`editor-blocks` v0.3.0)
+**Repository:** https://github.com/coderooz/Editor-Blocks
+**Companion:** `.workspace/LFI/LOGIC_FLOW_INDEX.md` (behavioural flows)
+**Relationship:** PRI = "what exists and where"; LFI = "what happens and how"
 
 ---
 
 ## 1. Reference Metadata
 
-| Field | Value |
-|---|---|
-| Created | 2026-08-28 (root-level predecessor, deprecated) |
-| Migrated to `.workspace/PRI/` | 2026-10-01 |
-| Last updated | 2026-10-01 |
-| Verification scope | FULL (all tracked source + config) |
-| Predecessor path | `./PROJECT_REFERENCE_INDEX.md` (removed) |
+| Field             | Value                                        |
+| ----------------- | -------------------------------------------- |
+| Canonical path    | `.workspace/PRI/PROJECT_REFERENCE_INDEX.md`  |
+| Tracked in git    | Yes (committed reference system)             |
+| Rebuild source    | `git ls-files` + package.json + registry     |
+| Supersedes        | Root `PROJECT_REFERENCE_INDEX.md` (deleted at rebrand, `7dff887`) |
+
+> A stale copy may exist at `.opencode/reference/PROJECT_REFERENCE_INDEX.md` or repo root in
+> older clones. This `.workspace/PRI/` copy is canonical.
 
 ---
 
 ## 2. Project Identity
 
-A Next.js 16 rich-text editor showcase and reference implementation built on TipTap v3.
-Four editor modes, a menu-driven toolbar, bubble-menu components, custom extensions,
-and a landing page with an embedded live demo. No backend, no database, no auth.
+| Field          | Value                                                        |
+| -------------- | ------------------------------------------------------------ |
+| Product name   | Editor Blocks                                                |
+| npm package    | `editor-blocks` v0.3.0 (private, **not published to npm**)   |
+| Shape          | Library of drop-in editor modules + catalogue/examples/docs site |
+| Author         | Ranit Saha (Coderooz) <contact@coderooz.in>                  |
+| License        | MIT                                                          |
+| Repository     | https://github.com/coderooz/Editor-Blocks (public, `main`)   |
+| Deployment     | https://editor-blocks.vercel.app (Vercel)                    |
+| Local dir name | `Simple-Tiptap-editor` (historical; not the product name)    |
+
+**Naming history:** `simple-tiptap-editor` 0.1.0 → `tiptap-editor` 1.0.0 (TipTap-Editor) →
+`editor-blocks` 0.3.0. Version was deliberately reset 1.0.0 → 0.3.0 at the rename; there was
+never an 0.2.0.
 
 ---
 
 ## 3. Technology Stack
 
-Verified against `package.json` and installed `node_modules` on 2026-10-01.
+| Layer       | Choice                                              |
+| ----------- | --------------------------------------------------- |
+| Framework   | Next.js 16.3.8 (App Router, Turbopack)              |
+| UI          | React 19.3.0 / react-dom 19.3.0                     |
+| Language    | TypeScript ^5.9.2 (strict)                          |
+| Styling     | Tailwind CSS ^4 (`@tailwindcss/postcss`), tw-animate-css |
+| Components  | shadcn/ui patterns, Radix UI (dialog, hover-card, popover, select, slot, tabs), cmdk, cva, clsx, tailwind-merge |
+| Editor core | TipTap ^3.31.4 (`@tiptap/react`, `@tiptap/pm`, `@tiptap/extensions` + 27 official extensions) |
+| Engine dep  | `lexical` ^0.52.0 (scaffold only — no module runs on it) |
+| Icons       | lucide-react ^1.49.0                                |
+| Highlight   | lowlight ^3.3.0 (via `lib/highlight.ts`)            |
+| Utility     | lodash ^4.18.1 + @types/lodash (debounce)           |
+| Tooling     | ESLint ^9.39.5 (flat config), Prettier ^3.9.9, Husky ^9.1.7, lint-staged ^17.6.0 |
+| Runtime     | Node ≥ 20, npm ≥ 10 (`packageManager: npm@12.2.0`)  |
 
-| Category | Technology | Installed version |
-|---|---|---|
-| Framework | Next.js (App Router, Turbopack) | `16.3.8` |
-| Language | TypeScript | `5.9.3` |
-| Runtime | React / React DOM | `19.3.0` |
-| Styling | Tailwind CSS + PostCSS | `4.1.16` |
-| UI kit | shadcn/ui (Radix primitives) | components in `components/ui/` |
-| Editor | TipTap v3 (`@tiptap/*`) | `3.31.4` |
-| Icons | lucide-react | `1.49.0` |
-| Markdown/light syntax | lowlight | `3.3.0` |
-| Command palette | cmdk | `1.1.1` |
-| Merge helper | class-variance-authority, clsx, tailwind-merge | `0.7.1` / `2.1.1` / `3.7.0` |
-| Linter | ESLint (flat config) | `9.39.5` |
-| Type-aware lint | typescript-eslint | `8.71.0` |
-| Next lint config | eslint-config-next | `16.3.8` |
-| Git hooks | husky + lint-staged | `9.1.7` / `17.6.0` |
-| Formatter | Prettier (+ Tailwind plugin) | `3.9.9` |
-| Package manager | npm | `packageManager: npm@12.2.0` |
-| Runtime requirement | Node | `>=20.0.0` |
-| Hosting | Vercel | via `.github/workflows/ci.yml` |
+### 3.1 Installed-but-not-app-wired dependencies
 
-### 3.1 Installed-but-unused dependencies
-
-Present in `package.json`, referenced by **zero** source files. Marketing copy in
-`app/page.tsx:53` and `components/LiveEditorDemo.tsx:31` describes them as future work.
-
-- `yjs`, `y-protocols`, `@tiptap/extension-collaboration`, `@tiptap/y-tiptap`
-- `lucide-react` peer chain `baseline-browser-mapping` (present only as a transitive + explicit dep)
+| Dependency | State |
+| ---------- | ----- |
+| `lexical` ^0.52.0 | Imported only by `src/adapters/lexicalAdapter.ts` (scaffold); no module renders it |
+| `@tiptap/extension-file-handler` | Installed; part of preset extension arrays (check before removing) |
 
 ---
 
 ## 4. Root Structure
 
 ```
-TipTap-Editor/
-├── .github/
-│   ├── CODEOWNERS
-│   ├── dependabot.yml            # weekly npm + github-actions updates
-│   ├── ISSUE_TEMPLATE/           # bug_report.yml, feature_request.yml
-│   ├── PULL_REQUEST_TEMPLATE/    # pull_request_template.yml
-│   └── workflows/ci.yml          # 5 jobs (see §14)
-├── .husky/                       # git hooks
-├── .vscode/                      # settings.json, extensions.json
-├── .workspace/                   # dev artifacts (see §15.4)
-│   ├── PRI/                      # committed structural reference
-│   └── LFI/                      # committed behavioral reference
-├── app/                          # Next.js App Router
-├── components/
-├── constants/
-├── context/
-├── lib/
-├── public/
-├── .editorconfig
-├── .gitignore
-├── .mcp-runtime.json             # MCP runtime state (git-ignored)
-├── .prettierrc
-├── AGENTS.md
-├── CHANGELOG.md
-├── CODE_OF_CONDUCT.md
-├── CONTRIBUTING.md
-├── DEVELOPMENT_NOTES.md
-├── LICENSE
-├── README.md
-├── SECURITY.md
-├── components.json               # shadcn/ui config
-├── eslint.config.mjs
-├── next-env.d.ts                 # generated (git-ignored)
-├── next.config.ts
-├── opencode.jsonc                # OpenCode agent config
-├── package.json / package-lock.json
-├── postcss.config.mjs
-├── simple-tiptap-editor.project-mcp.json
-├── tailwind.config.ts
-├── tsconfig.json
-├── tsconfig.tsbuildinfo          # build artifact (git-ignored)
-└── vercel.json
+.editorconfig  .prettierrc  .gitignore
+.eslintrc.json (ABSENT — flat config is eslint.config.mjs)
+components.json  next.config.ts  postcss.config.mjs  tailwind.config.ts
+package.json  package-lock.json  tsconfig.json  vercel.json
+AGENTS.md  README.md  DEVELOPMENT_NOTES.md  CHANGELOG.md
+CONTRIBUTING.md  CODE_OF_CONDUCT.md  SECURITY.md  LICENSE
+opencode.jsonc                      # OpenCode agent config (MCP_PROJECT kept as storage key)
+simple-tiptap-editor.project-mcp.json  # local memory-server identity file (storage key, NOT product name)
+app/  components/  constants/  context/  lib/  src/  plugin/  public/
+.github/  .vscode/  .workspace/
 ```
 
 ---
 
 ## 5. Directory Reference
 
-### `app/`
-
-Type: Next.js App Router root.
-Purpose: Route tree, root layout, global styles.
-Contains: `layout.tsx`, `page.tsx`, `globals.css`, `favicon.ico`, plus three route folders.
-Do not: place components here; shared components belong in `components/`.
-
-### `app/comment/`, `app/content/`, `app/docs/`
-
-Type: Leaf route folders, each containing exactly one `page.tsx`.
-Purpose: Render one editor mode per route.
-Related: `components/EditorPage.tsx`, `context/EditorContext.tsx`.
+### `app/` — App Router routes
+- `page.tsx` — `/` landing with `LiveEditorDemo`
+- `layout.tsx` — root layout: fonts, metadata, **`EditorProvider` mounted exactly once**
+- `modules/page.tsx` — `/modules` catalogue (from registry)
+- `examples/` — index + 4 shipped routes: `comment/`, `content/`, `docs/`, `presentation/`
+- `documentation/` — `page.tsx`, `layout.tsx`, `DocsToc.tsx`, `not-found.tsx`, plus
+  `getting-started/`, `modules/` (+ `[moduleId]/`), `api/`, `architecture/`,
+  `custom-modules/`, `references/`, `roadmap/`
+- `globals.css` — Tailwind v4 + CSS variables (light/dark)
 
 ### `components/`
-
-Type: Client + presentational component layer.
-Purpose: Editor shell, toolbar, bubble menus, modals, shadcn primitives, brand icons.
-Contains: 6 flat editor-shell components, `bubbleMenu/`, `extensions/`, `icons/`, `models/`, `ui/`.
-
-### `components/bubbleMenu/`
-
-Type: Floating-menu components.
-Purpose: Context-sensitive formatting menus bound to TipTap editor instances.
-Contains: `BaseBubbleMenu.tsx`, `TextBubbleMenu.tsx`, `ImageBubbleMenu.tsx`,
-`TableBubbleMenu.tsx`, `YoutubeBubbleMenu.tsx`.
-Constraint: all five are **currently not mounted** — see §18.
-
-### `components/extensions/`
-
-Type: Custom TipTap extensions.
-Purpose: Behavior not covered by stock TipTap packages.
-Contains: `FontFamily.ts`, `FontSize.ts`, `MarkDownLink.ts`, `ImageResizable.tsx`.
-
-### `components/icons/`
-
-Type: Local icon module.
-Purpose: Brand marks removed from lucide-react v1 (GitHub, X/Twitter, YouTube).
-Contains: `brand-icons.tsx`.
-Related: `app/page.tsx`, `constants/EditorMenuOptions.ts`.
-
-### `components/models/`
-
-Type: Dialog/modal bodies.
-Purpose: Modal content for insert actions (image, link, YouTube, import/export).
-Contains: `image.tsx`, `link.tsx`, `youtube.tsx`, `ImportExport.tsx`.
-Accessed via `MenuItemType = "model"` in `constants/EditorMenuOptions.ts`.
-
-### `components/ui/`
-
-Type: shadcn/ui primitives.
-Purpose: Unstyled building blocks consumed by toolbar and modals.
-Contains: `button.tsx`, `dialog.tsx`, `input.tsx`, `popover.tsx`, `select.tsx`,
-`native-select.tsx`, `hover-card.tsx`, `command.tsx`, `tabs.tsx`.
-Alias: `@/ui/*`.
+- `EditorPage.tsx` — public mounting surface (toolbar + editing area + char count)
+- `EditorMenuBar.tsx` — toolbar; `MENU_BY_TYPE` total map, grouping, dispatch
+- `LiveEditorDemo.tsx` — landing demo with module tabs (registry-derived + `default`)
+- `ThemeToggle.tsx` — dark/light switch
+- `toolbar/ToolbarItem.tsx` — polymorphic renderer (`button | dropdown | input | model`)
+- `examples/` — `ExamplePageTemplate.tsx`, `EditorPreview.tsx`, `InstallGuide.tsx`, `example-metadata.ts`
+- `modules/ModulesCatalogue.tsx` — catalogue grid
+- `docs/` — `CodeBlock`, `CopyButton`, `DocsCode`, `DocsHeading`, `DocsReferences`, `docs-metadata`
+- `extensions/MarkDownLink.ts` — custom link mark (extends stock `Link`; register exactly once)
+- `icons/brand-icons.tsx`, `models/` (`ImportExport`, `image`, `link`, `youtube`),
+  `layout/` (`Header`, `Footer`), `ui/` (12 shadcn primitives)
+- **Absent:** `bubbleMenu/`, `MenuButton.tsx`, `EditorButton.tsx` (pre-rename artefacts)
 
 ### `constants/`
-
-Type: Editor configuration + type definitions.
-Purpose: Single place where extension sets and toolbar layout are declared.
-Contains: `EditorExtension.tsx`, `EditorMenuOptions.ts`, `EditorStateOptions.tsx`.
-Note: `EditorStateOptions.tsx` currently contains only a `/** @format */` banner — effectively empty.
+- `module-registry.ts` — **SSOT: 8 modules** (id, title, engine, status, href, docs, extensionSet)
+- `EditorExtension.tsx` — 9 presets: `DEFAULT`, `COMPLEX`, `BLOG`, `DOCUMENT`, `COMMENT`,
+  `PRESENTATION`, `MARKDOWN`, `LEGAL`, `WIKI`
+- `EditorMenuOptions.ts` — 41 toolbar items (29 button, 4 dropdown, 3 input, 5 model) + 4 menus
+- `sample-content.ts` — seed HTML (4 keys: comment, content, document, presentation)
+- `docs-nav.ts`, `docs-references.ts` — documentation navigation/links
 
 ### `context/`
-
-Type: React context provider.
-Purpose: Owns the single live TipTap `Editor` instance and derived state.
-Contains: `EditorContext.tsx` (provider + `useEditorContext` hook).
-Constraint: exactly one `EditorProvider` should mount; see `app/layout.tsx`.
+- `EditorContext.tsx` — single provider; `EditorType = ModuleId | "default"`;
+  module → preset map; `moduleContents` per-module content; `charCount`; `editor` (nullable)
 
 ### `lib/`
+- `utils.ts` — `cn()` (clsx + tailwind-merge)
+- `highlight.ts` — `highlightCode`, `resolveLanguage`, `languageLabel`, `isKnownLanguage`
 
-Type: Shared utilities.
-Contains: `utils.ts` exporting `cn()` (clsx + tailwind-merge).
+### `src/`
+- `adapters/lexicalAdapter.ts` — `EditorAdapter` seam + partial Lexical impl (scaffold)
+
+### `plugin/` — unpublished npm-package scaffold (`@coderooz/tiptap-editor`, own tsup build)
+- `README.md` (now marked NOT published), `package.json`, `src/` (components, constants,
+  context, types, utils) — **not part of the app build**
 
 ### `public/`
+- `llm.txt` (canonical AI map), `llms-full.txt` (full AI reference), `ContentImage.png`
+  (README screenshot), svg assets
 
-Type: Static assets served at `/`.
-Contains: `ContentImage.png`, `file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`.
+### `.github/`
+- `workflows/ci.yml` — lint+typecheck, build, test, deploy-preview, deploy-production
+- `CODEOWNERS` (corrected paths), `ISSUE_TEMPLATE/` ×2, `PULL_REQUEST_TEMPLATE/`,
+  `dependabot.yml`
+
+### `.workspace/`
+- `PRI/` and `LFI/` — **committed** reference systems (durable)
+- `README.md`, `CHATGPT_CONTEXT_REPORT.md`, `PROJECT_CONTEXT_REPORT.md`,
+  `TIPTAP_SHOWCASE_ARCHITECTURE.md`, `TIPTAP_SHOWCASE_BASELINE.md`, `TODO_PORTFOLIO.md` —
+  historical pre-rename artefacts, kept for traceability
+- Scratch dirs (reports/, tmp/) are gitignored
 
 ---
 
-## 6. File Reference
+## 6. Key File Reference
 
-### `app/layout.tsx`
-
-Type: Root layout.
-Purpose: HTML shell, providers, SEO metadata export.
-Responsibility: mounts `EditorProvider` (via `EditorContext`), ThemeToggle, global CSS.
-Dependencies: `context/EditorContext.tsx`, `components/ThemeToggle.tsx`, `app/globals.css`.
-
-### `app/page.tsx`
-
-Type: Landing page (route `/`).
-Purpose: Marketing/feature overview plus an embedded live editor demo.
-Responsibility: route composition only; editor behavior comes from `LiveEditorDemo`.
-Note: links to `/demo` in 5 places — see §18.
-
-### `app/comment/page.tsx`, `app/content/page.tsx`, `app/docs/page.tsx`
-
-Type: App Router pages.
-Route: `/comment`, `/content`, `/docs`.
-Purpose: mount the editor in one specific mode.
-Pattern: render `EditorPage` with a `type` prop, wrapped in the provider.
-
-### `components/EditorPage.tsx`
-
-Type: Client component.
-Purpose: The reusable editor shell used by all three mode routes.
-Responsibility: sets editor type via `setEditorType`, renders `EditorMenuBar` + `EditorContent`,
-displays live character count.
-Dependencies: `context/EditorContext.tsx`, `components/EditorMenuBar.tsx`, `@tiptap/react`.
-
-### `components/LiveEditorDemo.tsx`
-
-Type: Client component.
-Purpose: Editor instance embedded in the landing page hero.
-
-### `components/EditorMenuBar.tsx`
-
-Type: Client component (consumes context, no `"use client"` directive of its own).
-Purpose: Renders the toolbar by grouping `MenuItem[]` entries.
-Responsibility: selects the menu array by `editorType`, then switches on `item.type`
-(`button` | `dropdown` | `input` | `model` | `custom`).
-Dependencies: `constants/EditorMenuOptions.ts`, `components/ui/*`, `lib/utils.ts`.
-
-### `components/MenuButton.tsx`, `components/EditorButton.tsx`
-
-Type: Presentational button wrappers.
-Note: neither is imported by `EditorMenuBar.tsx`; the toolbar inlines its own `Button` usage.
-
-### `components/ThemeToggle.tsx`
-
-Type: Client component.
-Purpose: dark/light mode toggle.
-
-### `constants/EditorExtension.tsx`
-
-Type: Extension composition module — **the single source of extension composition**.
-Purpose: composes four named extension presets plus a custom `Heading` override.
-Exports: `DEFAULT_EXTENSIONS`, `COMPLEX_EXTENSIONS` (internal), `BLOG_EXTENSIONS`,
-`DOCUMENT_EXTENSIONS`, `COMMENT_EXTENSIONS`.
-Constraint: `Heading` extends TipTap's `Heading` and narrows `options.levels` to `Level[]`
-(`1|2|3|4|5|6`) from `@tiptap/extension-heading`.
-
-### `constants/EditorMenuOptions.ts`
-
-Type: Toolbar/menu definition module.
-Purpose: declares every toolbar entry and the three menu arrays.
-Exports: `MENU_BTN_ITEMS`, `CONTENT_MENU`, `DOCUMENT_MENU`, and types
-`MenuItem`, `MenuBtnGroups`, `MenuItemType`, `MenuButton`, `MenuDropdown`.
-Constraint: `MenuBase.icon` is `React.ElementType`, so non-Lucide components are allowed —
-this is how `Youtube` from `@/components/icons/brand-icons` is wired in.
-
-### `context/EditorContext.tsx`
-
-Type: React Context provider + hook.
-Purpose: owns `editor`, `editorType`, `charCount`, `editorContent`.
-Responsibility: maps `editorType` → extension preset, re-creates the editor when the type
-changes (dependency array on `editorType`), tracks character count on `transaction`.
-Exports: `EditorProvider`, `useEditorContext`, type `EditorType`.
-Constraint: renders a literal `Editor Type: {editorType}` debug label in the DOM.
-
-### `components/icons/brand-icons.tsx`
-
-Type: Local icon module.
-Purpose: supplies GitHub / X / YouTube marks that lucide-react v1 removed.
-Exports: `Github`, `Twitter`, `Youtube` — each typed as `LucideIcon` via
-`createLucideIcon`, so they are drop-in for any Lucide slot.
+| File | Role | Notes |
+| ---- | ---- | ----- |
+| `app/layout.tsx` | Root layout | Mounts `EditorProvider` **once**; metadataBase pinned to production origin |
+| `app/page.tsx` | `/` | Renders `LiveEditorDemo` |
+| `context/EditorContext.tsx` | State core | Preset map with `\|\| DEFAULT_EXTENSIONS` fallback (silent-fallback risk) |
+| `constants/module-registry.ts` | SSOT | 8 entries; drives catalogue/examples/docs/llm.txt |
+| `constants/EditorExtension.tsx` | Presets | 9 exports; MARKDOWN/LEGAL/WIKI defined but unwired |
+| `constants/EditorMenuOptions.ts` | Toolbar data | 41 items; `MenuItemType` includes unused `"custom"` |
+| `components/EditorMenuBar.tsx` | Toolbar shell | `MENU_BY_TYPE` total over `EditorType` (compile-time) |
+| `components/toolbar/ToolbarItem.tsx` | Dispatch | `default:` returns null; Radix triggers need `asChild` |
+| `components/EditorPage.tsx` | Mount surface | Applies `initialContent` via `setContent()` |
+| `components/examples/ExamplePageTemplate.tsx` | Demo shell | Breadcrumb, editor, preview, install guide |
+| `src/adapters/lexicalAdapter.ts` | Engine seam | Partial scaffold; no consumer yet |
+| `eslint.config.mjs` | Lint config | Flat config; `consistent-type-imports` enforced |
+| `.github/workflows/ci.yml` | CI/CD | Secrets via job `env:` — never `secrets` in `if:` |
 
 ---
 
 ## 7. Application Routes
 
-Filesystem-routed (Next.js App Router). Verified against `npm run build` output.
+| Route | Status | Renders |
+| ----- | ------ | ------- |
+| `/` | ✅ | Landing + `LiveEditorDemo` (tabs from registry + `default`) |
+| `/modules` | ✅ | `ModulesCatalogue` (registry-derived) |
+| `/examples` | ✅ | Example index (registry-derived) |
+| `/examples/comment` | ✅ | `ExamplePageTemplate` → `EditorPage type="comment"` |
+| `/examples/content` | ✅ | `EditorPage type="content"` |
+| `/examples/docs` | ✅ | `EditorPage type="document"` |
+| `/examples/presentation` | ✅ | `EditorPage type="presentation"` |
+| `/documentation` (+ 7 subroutes) | ✅ | Docs section incl. `/documentation/modules/[moduleId]` |
+| `/llm.txt`, `/llms-full.txt` | ✅ | Served from `public/` |
+| `/examples/markdown` | ❌ **404** | Registry `href` pending route |
+| `/examples/legal` | ❌ **404** | Registry `href` pending route |
+| `/examples/wiki` | ❌ **404** | Registry `href` pending route |
+| `/examples/lexical` | ❌ **404** | Registry `href` pending route |
+| `/presentation` | ↪️ | `vercel.json` redirect → `/examples/presentation` |
+| `/editor/:mode` | ↩️ | `vercel.json` rewrite → `/:mode` (legacy) |
 
-| Route | Filesystem | Mode | Status |
-|---|---|---|---|
-| `/` | `app/page.tsx` | `default` | ACTIVE |
-| `/comment` | `app/comment/page.tsx` | `comment` | ACTIVE |
-| `/content` | `app/content/page.tsx` | `content` | ACTIVE |
-| `/docs` | `app/docs/page.tsx` | `document` | ACTIVE |
-| `/_not-found` | framework-generated | — | ACTIVE |
-
-### 7.1 Routes referenced by navigation but NOT implemented
-
-| Route | Referenced from | Status |
-|---|---|---|
-| `/demo` | `app/page.tsx` lines 116, 161, 356, 388 | **MISSING → 404** |
-| `/features` | documented in former root-level PRI only | **MISSING → 404** |
-
----
-
-## 8. API Routes
-
-None. The project is fully static; `npm run build` reports every page as
-`(Static) prerendered as static content`. No `app/api/`, no server actions,
-no external HTTP calls.
+**API routes: none.** The app is fully client-side; no `app/api/`, no backend, no database.
 
 ---
 
-## 9. Modules
+## 8. Modules (registry SSOT — `constants/module-registry.ts`)
 
-No domain modules or service/repository layers exist. The module equivalents are:
+| id | Title | Engine | Status | Preset wired | Toolbar menu | Example route |
+| -- | ----- | ------ | ------ | ------------ | ------------ | ------------- |
+| `comment` | Comment Editor | tiptap | stable | `COMMENT_EXTENSIONS` | `COMMENT_MENU` | ✅ |
+| `content` | Content Editor | tiptap | stable | `BLOG_EXTENSIONS` | `CONTENT_MENU` | ✅ |
+| `document` | Document Editor | tiptap | stable | `DOCUMENT_EXTENSIONS` | `DOCUMENT_MENU` | ✅ `/examples/docs` |
+| `markdown` | Markdown Editor | tiptap | stable | ⚠️ unwired → `DEFAULT_EXTENSIONS` | `CONTENT_MENU` | ❌ |
+| `legal` | Legal Editor | tiptap | stable | ⚠️ unwired → `DEFAULT_EXTENSIONS` | `CONTENT_MENU` | ❌ |
+| `wiki` | Wiki Editor | tiptap | beta | ⚠️ unwired → `DEFAULT_EXTENSIONS` | `CONTENT_MENU` | ❌ |
+| `presentation` | Presentation Editor | tiptap | beta | `PRESENTATION_EXTENSIONS` | `CONTENT_MENU` | ✅ |
+| `lexical` | Lexical Editor | lexical | planned | ⚠️ `LEXICAL_EXTENSIONS` **does not exist** | `CONTENT_MENU` | ❌ |
+| `default` | (fallback id) | tiptap | — | `DEFAULT_EXTENSIONS` | `MENU_BTN_ITEMS` | n/a (landing) |
 
-| Module | Location | Responsibility |
-|---|---|---|
-| Extension registry | `constants/EditorExtension.tsx` | composition of TipTap extensions |
-| Menu registry | `constants/EditorMenuOptions.ts` | toolbar surface definition |
-| Editor state | `context/EditorContext.tsx` | live editor instance + derived state |
-| Brand assets | `components/icons/brand-icons.tsx` | removed brand marks |
-
----
-
-## 10. Components
-
-| Component | File | Type |
-|---|---|---|
-| Editor shell | `components/EditorPage.tsx` | client |
-| Toolbar | `components/EditorMenuBar.tsx` | client (via context) |
-| Button wrapper | `components/MenuButton.tsx`, `components/EditorButton.tsx` | client |
-| Select wrapper | `components/MenuSelect.tsx` | client |
-| Landing demo | `components/LiveEditorDemo.tsx` | client |
-| Theme toggle | `components/ThemeToggle.tsx` | client |
-| Bubble menus ×5 | `components/bubbleMenu/*.tsx` | client, **not mounted** |
-| Modals ×4 | `components/models/*.tsx` | client |
-| Brand icons | `components/icons/brand-icons.tsx` | pure render |
-| shadcn primitives ×9 | `components/ui/*.tsx` | mixed |
+**Counts:** 8 registered · 4 fully shipped (preset + route) · 9 extension presets ·
+41 toolbar items.
 
 ---
 
-## 11. Services
+## 9. Configuration
 
-None. No service layer, no API client, no state-fetching library.
-
----
-
-## 12. Data Layer
-
-None. No database, no ORM, no schema files, no migrations, no repository layer.
-
----
-
-## 13. Configuration
-
-| File | Purpose |
-|---|---|
-| `package.json` | deps, scripts, engines, packageManager |
-| `tsconfig.json` | strict TS; notable: `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noPropertyAccessFromIndexSignature`, `noUnusedLocals`, `noImplicitOverride`; path aliases `@/*`, `@/ui/*`, `@/bubbleMenu/*`, `@/models/*`, `@/extensions/*` |
-| `eslint.config.mjs` | flat config: typescript-eslint recommended, `eslint-config-next` core-web-vitals + typescript, react, react-hooks, unused-imports |
-| `next.config.ts` | `optimizePackageImports` experiment |
-| `postcss.config.mjs` | Tailwind v4 PostCSS plugin |
-| `tailwind.config.ts` | Tailwind config |
-| `components.json` | shadcn/ui component paths |
-| `.prettierrc` | Prettier options |
-| `.editorconfig` | whitespace/encoding |
-| `vercel.json` | Vercel project config |
-| `.github/workflows/ci.yml` | CI/CD |
-| `.github/dependabot.yml` | dependency updates |
-| `simple-tiptap-editor.project-mcp.json` | MCP project descriptor |
-| `opencode.jsonc` | OpenCode agent configuration |
+| File | Purpose | Gotchas |
+| ---- | ------- | ------- |
+| `package.json` | Scripts, deps | Description says "first release ships four modules" (true for *shipped* demos; registry total is 8) |
+| `next.config.ts` | CSP headers, image config | — |
+| `tsconfig.json` | Strict TS, `@/*` paths | — |
+| `eslint.config.mjs` | ESLint 9 flat config | No `.eslintrc.json` exists |
+| `tailwind.config.ts` + `postcss.config.mjs` | Tailwind 4 pipeline | — |
+| `components.json` | shadcn/ui config | — |
+| `vercel.json` | 1 redirect + 1 rewrite | See §7 |
+| `opencode.jsonc` | OpenCode agents/commands | `instructions` → `.workspace/PRI/PROJECT_REFERENCE_INDEX.md`; **`MCP_PROJECT: "simple-tiptap-editor"` is a local memory-server storage key — do not rename** |
+| `.github/workflows/ci.yml` | CI | Never `secrets` context inside `if:` |
+| `.prettierrc`, `.editorconfig` | Formatting | — |
+| `.env.local` (gitignored) | Local Vercel OIDC token | Never commit; no env vars needed to run locally |
 
 ---
 
-## 14. Scripts & Commands
+## 10. Scripts & Commands
 
-Verified from `package.json`.
+| Script | Command | State |
+| ------ | ------- | ----- |
+| `npm run dev` | `next dev` | Works (Turbopack) |
+| `npm run build` | `next build` | Clean |
+| `npm run start` | `next start` | — |
+| `npm run lint` | `eslint` | 0 errors / 18 warnings |
+| `npm run typecheck` | `tsc --noEmit` | Clean |
+| `npm test --if-present` | (no `test` script) | No-op — no suite configured |
+| `prepare` | `husky install` | Deprecated warning, exits 0 |
 
-| Script | Command |
-|---|---|
-| `npm run dev` | `next dev` |
-| `npm run build` | `next build` |
-| `npm start` | `next start` |
-| `npm run lint` | `eslint` |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run prepare` | `husky install` |
+### CI pipeline (`.github/workflows/ci.yml`)
 
-There is **no** `test` script.
-
-### 14.1 CI pipeline (`.github/workflows/ci.yml`)
-
-Triggers on push/PR to `main`. Jobs:
-
-1. `lint-and-typecheck` — `npm ci`, `eslint`, `tsc --noEmit`
-2. `build` — `npm ci`, `next build`
-3. `test` — `npm ci`, `npm test --if-present` (currently a no-op)
-4. `deploy-preview` — PR only; gated on `VERCEL_TOKEN`/`VERCEL_ORG_ID`/`VERCEL_PROJECT_ID`
-5. `deploy-production` — push to `main`; same secrets gate
+Jobs: `lint-and-typecheck` → `build` → `test` → `deploy-preview` (PR) /
+`deploy-production` (push to `main`). Deploy steps map `VERCEL_TOKEN` / `VERCEL_ORG_ID` /
+`VERCEL_PROJECT_ID` to job-level `env:` and skip when empty. **No GitHub secrets are
+configured today** → deploy steps skip; the Vercel Git integration performs actual deploys.
+Historical root cause of 0s/0-job failures: `secrets` context in step-level `if:` (illegal).
 
 ---
 
-## 15. Documentation
+## 11. Documentation
 
-### 15.1 Tracked project documentation
+### Tracked project documentation
+`README.md`, `AGENTS.md`, `DEVELOPMENT_NOTES.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
+`CODE_OF_CONDUCT.md`, `SECURITY.md`, `LICENSE`, `plugin/README.md` (marked unpublished).
 
-`README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
-`CHANGELOG.md`, `DEVELOPMENT_NOTES.md`.
+### Reference systems (committed)
+- `.workspace/PRI/PROJECT_REFERENCE_INDEX.md` — this file (structural)
+- `.workspace/LFI/LOGIC_FLOW_INDEX.md` + `DIAGRAMS.md` (behavioural)
 
-> `DEVELOPMENT_NOTES.md` duplicates the editor-mode table that also appears in this PRI.
-> The PRI is the structural source of truth; update both if the modes change.
+### AI manifests (served at site root)
+- `public/llm.txt` — canonical map; documents 4 shipped + 4 registered-not-shipped
+- `public/llms-full.txt` — full API/usage/architecture reference
 
-### 15.2 Reference systems (committed)
-
-| System | Path | Scope |
-|---|---|---|
-| PRI | `.workspace/PRI/PROJECT_REFERENCE_INDEX.md` | structure — what exists and where |
-| LFI | `.workspace/LFI/LOGIC_FLOW_INDEX.md` (+ 3 companions) | behavior — what happens and how |
-
-### 15.3 Superseded / pre-migration artifacts
-
-`.workspace/` previously held these at its top level, before the PRI/LFI split:
-
-- `PROJECT_CONTEXT_REPORT.md`
-- `CHATGPT_CONTEXT_REPORT.md`
-- `TIPTAP_SHOWCASE_ARCHITECTURE.md`
-- `TIPTAP_SHOWCASE_BASELINE.md`
-- `TODO_PORTFOLIO.md`
-
-Status: **STALE**. Several describe the pre-rename `Simple-Tiptap-editor` package name and
-structures that no longer exist. Treat as historical only.
-
-### 15.4 Workspace layout
-
-See `.workspace/README.md`. Transient subdirectories (`ai/`, `sessions/`, `temp/`,
-`logs/`, `generated/`, `reports/`, `research/`, `planning/`, `validation/`) are git-ignored.
-`PRI/` and `LFI/` are committed.
+### Superseded / pre-rename artefacts (kept, not authoritative)
+`.workspace/PROJECT_CONTEXT_REPORT.md`, `.workspace/CHATGPT_CONTEXT_REPORT.md`,
+`.workspace/TIPTAP_SHOWCASE_ARCHITECTURE.md`, `.workspace/TIPTAP_SHOWCASE_BASELINE.md`,
+`.workspace/TODO_PORTFOLIO.md`.
 
 ---
 
-## 16. Integrations
+## 12. Integrations
 
-| Integration | Status |
-|---|---|
-| Vercel | ACTIVE — `vercel.json` + CI deploy jobs |
-| GitHub | ACTIVE — CI, issue/PR templates, Dependabot, CODEOWNERS |
-| shadcn/ui | ACTIVE — Radix primitives vendored into `components/ui/` |
-| lucide-react | ACTIVE — brand icons supplemented by `components/icons/brand-icons.tsx` |
-| Yjs / TipTap Collaboration | **NOT WIRED** — installed, unreferenced |
-
----
-
-## 17. Assets
-
-`public/ContentImage.png`, `public/file.svg`, `public/globe.svg`, `public/next.svg`,
-`public/vercel.svg`, `public/window.svg`, `app/favicon.ico`.
-
-Note: the Vite-default `file/globe/next/vercel/window.svg` set appears unused.
+| Integration | Mechanism | State |
+| ----------- | --------- | ----- |
+| Vercel hosting | Git integration on `coderooz/Editor-Blocks` | Active — deploys on push to `main` |
+| GitHub Actions | `.github/workflows/ci.yml` | Lint/build/test run; deploy jobs skip without secrets |
+| OpenCode local memory | `.mcp-runtime.json` + `simple-tiptap-editor.project-mcp.json` | Storage key `simple-tiptap-editor` retained deliberately |
+| npm registry | — | **Nothing published** (package private; `plugin/` scaffold unpublished) |
+| Database / auth / API | — | None — static client-only site |
 
 ---
 
-## 18. Generated / Runtime Directories
+## 13. Assets
 
-| Path | Generated by | Git |
-|---|---|---|
-| `node_modules/` | npm | ignored |
-| `.next/` | `next build` / `next dev` | ignored |
-| `next-env.d.ts` | Next.js | ignored |
-| `tsconfig.tsbuildinfo` | `tsc --incremental` | ignored |
-| `.mcp-runtime.json` | MCP server runtime | ignored |
-| `.vercel/` | Vercel CLI | ignored |
+- `public/ContentImage.png` — editor toolbar screenshot (README hero)
+- `public/*.svg` — next/vercel/globe/window/file icons
+- Fonts via `next/font` in `app/layout.tsx`
+- OG images rely on `metadataBase` (production origin)
 
 ---
 
-## 19. Architectural Relationships
+## 14. Generated / Runtime Directories (not tracked)
 
-### 19.1 Editor mode selection
-
-```
-route (app/<mode>/page.tsx)
-      ↓ passes <type>
-EditorPage.tsx
-      ↓ setEditorType(type)
-EditorContext.tsx
-      ↓ maps editorType → preset
-constants/EditorExtension.tsx
-      ↓ extension list rebuilt when editorType changes
-useEditor() re-instantiates
-      ↓
-EditorContent renders into <EditorMenuBar/> + <EditorContent/>
-```
-
-### 19.2 Toolbar composition
-
-```
-EditorMenuBar.tsx
-  ├─ picks array by editorType:
-  │    content  → CONTENT_MENU
-  │    document → DOCUMENT_MENU
-  │    else     → MENU_BTN_ITEMS
-  ├─ groups items by item.group
-  └─ renders per item.type
-       button   → <Button> + item.action(editor)
-       dropdown → Select from item.options
-       input    → controlled input
-       model    → dialog rendering components/models/*.tsx
-       custom   → caller-supplied render
-```
-
-### 19.3 Extension preset derivation
-
-```
-DEFAULT_EXTENSIONS          (core: text, marks, link, typography, align, undo, blockquote)
-      ├─ + CharacterCount(limit 2500) → COMMENT_EXTENSIONS
-      ├─ COMPLEX_EXTENSIONS            → BLOG_EXTENSIONS
-      └─ COMPLEX + CharacterCount      → DOCUMENT_EXTENSIONS
-```
-
-`EditorContext.tsx:59-64` additionally appends a `Placeholder` extension to whichever
-preset is selected.
+`.next/`, `node_modules/`, `.workspace/` scratch subdirs (`reports/`, `tmp/` — gitignored),
+`.env.local`, `.mcp-runtime.json` (gitignored runtime state).
 
 ---
 
-## 20. Important Entry Points
+## 15. Architectural Relationships
 
-| Purpose | Path |
-|---|---|
-| App shell | `app/layout.tsx` |
-| Landing route | `app/page.tsx` |
-| Editor shell | `components/EditorPage.tsx` |
-| Editor state | `context/EditorContext.tsx` |
-| Extension composition | `constants/EditorExtension.tsx` |
-| Toolbar definition | `constants/EditorMenuOptions.ts` |
-| Class merge helper | `lib/utils.ts` |
-| MCP descriptor | `simple-tiptap-editor.project-mcp.json` |
-
----
-
-## 21. Project-Specific Conventions
-
-- `interface` preferred over `type` for object shapes.
-- `const` only; `var` prohibited.
-- Optional chaining and nullish coalescing expected.
-- Strict TS with unusually aggressive flags — notably `noPropertyAccessFromIndexSignature`,
-  which forces `obj["key"]` for index-signature access (e.g. `node.attrs["level"]`).
-- Server Components by default; `"use client"` only where interactivity is required.
-- Tailwind v4 with CSS variables; `cn()` for conditional classes.
-- Conventional Commits (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, `test:`, `style:`, `perf:`).
-- Path alias `@/*` maps to project root.
+1. **Registry → everything:** `module-registry.ts` drives `/modules`, `/examples` index,
+   `/documentation/modules/*`, and (hand-synced) `public/llm.txt`.
+2. **Context owns one editor:** `EditorProvider` (in `app/layout.tsx`) → `useEditor([editorType])`
+   → preset map resolves the extension array; `moduleContents` preserves per-module drafts.
+3. **Toolbar is data → dispatch:** `EditorMenuOptions.ts` (items) → `MENU_BY_TYPE` (total map)
+   → `ToolbarItem` (polymorphic render) → `editor.chain().focus()...run()`.
+4. **Engine seam:** registry `engine` field → `src/adapters/` (future branch point in the
+   preset map). Only TipTap is live.
+5. **Single-instance invariant:** a second `EditorProvider` desynchronises the toolbar.
 
 ---
 
-## 22. Known Structural Constraints
+## 16. Known Gaps (verified, documented — not fixed)
 
-1. **Single editor instance.** `EditorContext` owns one `Editor`. Mounting
-   `EditorProvider` twice would create two independent instances with divergent state.
-2. **Editor type forces re-init.** The `useEditor` dependency array includes `editorType`,
-   so switching mode discards and rebuilds the editor (and its content state).
-3. **Bubble menus are dead code.** All five components in `components/bubbleMenu/` are
-   commented out in `context/EditorContext.tsx` (lines 28-31 and 117-120). The project
-   markets "context-aware floating menus" on the landing page.
-4. **`/demo` is a 404.** Linked 4× from `app/page.tsx`; the route does not exist.
-5. **`MenuButton.tsx` / `EditorButton.tsx` are unused**; `EditorMenuBar` inlines its buttons.
-6. **`EditorStateOptions.tsx` is empty** (formatting banner only) despite being listed as
-   the type-definition module.
-7. **No tests.** No test runner installed, no `test` script, no test files — and the previous
-   `.gitignore` actively excluded `*.test.*` / `*.spec.*`. That exclusion has been removed.
-8. **Debug output in production markup.** `EditorContext.tsx:121` renders
-   `Editor Type: {editorType}` into the DOM on every editor page.
-9. **Commented-out code blocks remain** in `context/EditorContext.tsx` (lines 28-31,
-   117-120, 134-209), which the project's own quality gate forbids.
-
----
-
-## 23. Reference Maintenance Log
-
-### 2026-10-01 — Full rebuild from filesystem
-
-Change: Created the canonical PRI at `.workspace/PRI/`, removing the deprecated
-root-level `PROJECT_REFERENCE_INDEX.md`.
-
-Classification: `ADDED` + `REMOVED` + `VERIFICATION_REFRESH`
-
-Corrections applied versus the predecessor document:
-
-| Predecessor claim | Corrected to |
-|---|---|
-| `components/editor/` | `components/` (flat) + `bubbleMenu/`, `extensions/`, `icons/`, `models/`, `ui/` |
-| `components/toolbar/` | `components/EditorMenuBar.tsx` |
-| `components/bubble-menus/BubbleMenuRegistry.tsx` | `components/bubbleMenu/BaseBubbleMenu.tsx` (registry does not exist) |
-| `components/dialogs/` | `components/models/` |
-| `components/commands/` | `components/MenuButton.tsx`, `MenuSelect.tsx`, `EditorButton.tsx` |
-| `components/showcase/` | removed — never existed |
-| `editor/` (core, extensions, commands, state, serializers, types) | removed — never existed |
-| `constants/tiptap-feature-registry.ts` | `constants/EditorExtension.tsx` |
-| `constants/EditorStateOptions.ts` | `constants/EditorStateOptions.tsx` (and it is empty) |
-| `app/demo/page.tsx` | does not exist |
-| `app/features/` | does not exist |
-| `examples/`, `docs/`, `tests/` | do not exist |
-| Next.js 16.0.1 | 16.3.8 |
-| React 19.2.0 | 19.3.0 |
-| TipTap 3.10.1 | 3.31.4 |
-| lucide-react 0.548.0 | 1.49.0 |
-| CI/CD "planned" | ACTIVE — `.github/workflows/ci.yml` |
-| Dependabot "planned" | ACTIVE — `.github/dependabot.yml` |
-| Vitest + Playwright "in progress" | NOT STARTED |
-
-Updated: technology stack, directory reference, file reference, routes, modules,
-configuration, scripts, documentation, integrations, assets, generated dirs,
-relationships, entry points, constraints.
-
-Verification: FULL — every path asserted with `Test-Path`; routes confirmed against
-`npm run build` output; dependency versions read from installed `node_modules`.
-
-### 2026-08-28 — Predecessor created (root level)
-
-Change: Initial PRI authored at `./PROJECT_REFERENCE_INDEX.md`.
-Classification: `ADDED`
-Verification: MANUAL — authored from intended architecture; not filesystem-verified.
-Superseded by the 2026-10-01 entry.
+1. `/examples/*` routes missing for `markdown`, `legal`, `wiki`, `lexical` → their registry
+   `href`s 404 (add 3-line routes modeled on `app/examples/comment/page.tsx`).
+2. `MARKDOWN_EXTENSIONS`, `LEGAL_EXTENSIONS`, `WIKI_EXTENSIONS` unwired in the `EditorContext`
+   preset map (silently fall back to `DEFAULT_EXTENSIONS`).
+3. `LEXICAL_EXTENSIONS` referenced by the registry does not exist; `src/adapters/lexicalAdapter.ts`
+   is a partial scaffold.
+4. No automated test suite (`npm test --if-present` is a no-op).
+5. `plugin/` scaffold unpublished; its README documents a package not on npm.
+6. `package.json` description counts shipped modules (4), not registered ones (8).
+7. `MenuItemType["custom"]` declared but never dispatched (`ToolbarItem` `default:` → null).

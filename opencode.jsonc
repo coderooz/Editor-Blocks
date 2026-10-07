@@ -5,7 +5,7 @@
 
   "instructions": [
     "AGENTS.md",
-    "PROJECT_REFERENCE_INDEX.md",
+    ".workspace/PRI/PROJECT_REFERENCE_INDEX.md",
     "~/.config/opencode/GLOBAL_RULES.md",
     "~/.config/opencode/governance/PROJECT_WORKFLOW.md"
   ],
@@ -28,7 +28,7 @@
 
   "agent": {
     "build": {
-      "description": "Default agent for Simple-Tiptap-editor: Next.js 16 + TipTap v3 rich text editor development",
+      "description": "Default agent for Editor Blocks: Next.js 16 + TipTap v3 editor modules development",
       "mode": "primary",
       "temperature": 0.2,
       "steps": 50,
@@ -47,7 +47,7 @@
     },
 
     "plan": {
-      "description": "Analysis and planning mode for Simple-Tiptap-editor -- read-only exploration",
+      "description": "Analysis and planning mode for Editor Blocks -- read-only exploration",
       "mode": "primary",
       "temperature": 0.7,
       "steps": 30,
@@ -65,7 +65,7 @@
     },
 
     "explorer": {
-      "description": "Fast read-only search across Simple-Tiptap-editor codebase and docs",
+      "description": "Fast read-only search across Editor Blocks codebase and docs",
       "mode": "subagent",
       "temperature": 0.1,
       "steps": 20,
@@ -84,7 +84,7 @@
     },
 
     "doc-writer": {
-      "description": "Creates and updates Simple-Tiptap-editor documentation",
+      "description": "Creates and updates Editor Blocks documentation",
       "mode": "subagent",
       "temperature": 0.3,
       "steps": 30,
@@ -104,7 +104,7 @@
     },
 
     "doc-validator": {
-      "description": "Validates Simple-Tiptap-editor code against TipTap, Next.js, React docs",
+      "description": "Validates Editor Blocks code against TipTap, Next.js, React docs",
       "mode": "subagent",
       "temperature": 0.1,
       "steps": 35,
@@ -123,7 +123,7 @@
     },
 
     "doc-indexer": {
-      "description": "Maintains Simple-Tiptap-editor doc catalog and index",
+      "description": "Maintains Editor Blocks doc catalog and index",
       "mode": "subagent",
       "temperature": 0.1,
       "steps": 40,
@@ -142,7 +142,7 @@
     },
 
     "issue-handler": {
-      "description": "Manages GitHub issues and PRs for Simple-Tiptap-editor",
+      "description": "Manages GitHub issues and PRs for Editor Blocks",
       "mode": "subagent",
       "temperature": 0.2,
       "steps": 30,
@@ -168,7 +168,7 @@
     },
 
     "devops": {
-      "description": "DevOps for Simple-Tiptap-editor: Vercel deploy, CI/CD, env vars",
+      "description": "DevOps for Editor Blocks: Vercel deploy, CI/CD, env vars",
       "mode": "subagent",
       "temperature": 0.1,
       "steps": 50,
@@ -191,7 +191,7 @@
     },
 
     "deployer": {
-      "description": "Vercel deploy agent for Simple-Tiptap-editor",
+      "description": "Vercel deploy agent for Editor Blocks",
       "mode": "subagent",
       "temperature": 0.1,
       "steps": 20,
@@ -209,7 +209,7 @@
     },
 
     "tiptap-expert": {
-      "description": "TipTap v3 expert for editor extensions, bubble menus, custom nodes",
+      "description": "TipTap v3 expert for editor extensions, presets, toolbar items",
       "mode": "subagent",
       "temperature": 0.2,
       "steps": 40,
@@ -303,17 +303,17 @@
     },
     "add-extension": {
       "description": "Add a new TipTap extension",
-      "template": "Add a new TipTap extension to the editor. Follow the patterns in components/extensions/ and constants/EditorExtension.tsx. Update EditorMenuOptions.ts if a toolbar button is needed. Test all 4 editor modes.",
+      "template": "Add a new TipTap extension to the editor. Follow the patterns in components/extensions/ and constants/EditorExtension.tsx. Update EditorMenuOptions.ts if a toolbar button is needed. Test all shipped example routes.",
       "agent": "tiptap-expert"
     },
     "add-editor-mode": {
-      "description": "Add a new editor mode",
-      "template": "Add a new editor mode. Update EditorType in context/EditorContext.tsx, create extension array in constants/EditorExtension.tsx, add case to extensions map, create page in app/<mode>/page.tsx.",
+      "description": "Add a new editor module",
+      "template": "Add a new editor module. Add the registry entry in constants/module-registry.ts (SSOT), create the preset in constants/EditorExtension.tsx, wire it into the preset map in context/EditorContext.tsx, add the id to MENU_BY_TYPE in components/EditorMenuBar.tsx, add sample content in constants/sample-content.ts, and create app/examples/<id>/page.tsx around ExamplePageTemplate.",
       "agent": "tiptap-expert"
     },
-    "fix-bubble-menu": {
-      "description": "Fix bubble menu issues",
-      "template": "Debug and fix bubble menu issues in components/bubbleMenu/. Check BaseBubbleMenu.tsx and specific menus (Text, Image, Table, YouTube).",
+    "fix-toolbar-item": {
+      "description": "Fix a toolbar item rendering issue",
+      "template": "Debug and fix toolbar item rendering in components/toolbar/ToolbarItem.tsx (button | dropdown | input | model dispatch) and the menu definitions in constants/EditorMenuOptions.ts. Remember: Radix DialogTrigger needs asChild when wrapping a shadcn Button.",
       "agent": "tiptap-expert"
     }
   },

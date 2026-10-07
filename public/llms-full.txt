@@ -22,8 +22,10 @@ a pre-tuned editor configuration for one specific job, with its extension set, t
 constraints already decided.
 
 The name is deliberate: these are *blocks* you place, not a single editor you configure. Four
-modules ship today. The contract is engine-agnostic so the catalogue can grow to cover other
-editors without breaking.
+modules ship today with wired presets and live demos; eight are registered in the catalogue
+(the other four — markdown, legal, wiki, lexical — are documented but not fully shipped). The
+contract is engine-agnostic so the catalogue can grow to cover other editors without
+breaking.
 
 ### Design principles
 
@@ -167,7 +169,7 @@ interface EditorContextValue {
 | `editor`          | `Editor \| null`              | Guard for `null` before calling chain commands. Null on first render pass.     |
 | `editorContent`   | `string`                      | HTML string. Sanitise before persisting or rendering elsewhere.                 |
 | `charCount`       | `number`                      | Length of the document's plain text. Differs from HTML length.                 |
-| `setEditorType`   | `(t: EditorType) => void`     | Swaps the module. Destroys the current editor, losing content and undo history.|
+| `setEditorType`   | `(t: EditorType) => void`     | Swaps the module. Recreates the editor with the new preset; per-module content is preserved, undo history is lost. |
 | `setEditorContent`| `(v: string) => void`         | Seeds or replaces the document HTML.                                           |
 
 ### Extension presets
@@ -182,6 +184,9 @@ import {
   DOCUMENT_EXTENSIONS,     // COMPLEX + CharacterCount (textSize)
   COMMENT_EXTENSIONS,      // DEFAULT + CharacterCount (limit 2500, nodeSize)
   PRESENTATION_EXTENSIONS, // COMPLEX + CharacterCount (textSize)
+  MARKDOWN_EXTENSIONS,     // defined; not yet wired into the preset map
+  LEGAL_EXTENSIONS,        // defined; not yet wired into the preset map
+  WIKI_EXTENSIONS,         // defined; not yet wired into the preset map
 } from "@/constants/EditorExtension";
 ```
 
@@ -218,12 +223,16 @@ module's preset, the command does not exist and the click throws. Add the extens
 ### Utilities
 
 ```tsx
-import { extractYoutubeId } from "@/lib/editor-utils";
+// class merging (shadcn pattern)
+import { cn } from "@/lib/utils";
+cn("px-2", isActive && "px-4"); // tailwind-merge resolves conflicts
 
-extractYoutubeId("https://www.youtube.com/watch?v=dQw4w9WgXcQ"); // "dQw4w9WgXcQ"
-extractYoutubeId("https://youtu.be/dQw4w9WgXcQ");                 // "dQw4w9WgXcQ"
-extractYoutubeId("not a url");                                    // null
+// syntax highlighting helpers (server- and client-safe)
+import { highlightCode, resolveLanguage, languageLabel, isKnownLanguage } from "@/lib/highlight";
 ```
+
+`extractYoutubeId` exists only inside the unpublished `plugin/` scaffold — the app's YouTube
+dialog (`components/models/youtube.tsx`) validates URLs inline.
 
 ---
 
@@ -292,7 +301,7 @@ preset.
 
 | Decision                              | Consequence                                                                 |
 | ------------------------------------- | --------------------------------------------------------------------------- |
-| Module switch recreates the editor    | Content and undo history lost on switch. Acceptable for page-per-module.     |
+| Module switch recreates the editor    | Undo history lost on switch (content is preserved per module). Acceptable for page-per-module. |
 | One shared provider in root layout    | A page cannot host two independent editors. Needs a scoped-provider refactor.|
 | Presets are static arrays             | Extensions cannot be configured per host app without editing constants.     |
 | Toolbar items are data, not components| Simple to extend, but bespoke JSX controls cannot be expressed yet.          |
@@ -377,6 +386,24 @@ where heading hierarchy carries most of the meaning.
 
 ---
 
+### Registered but not fully shipped
+
+Four further ids exist in `constants/module-registry.ts` with generated documentation pages at
+`/documentation/modules/<id>`, but they have **no live demo route** (their registry `href`s
+404 today):
+
+| ID          | Status   | Preset state                                             | Engine   |
+| ----------- | -------- | -------------------------------------------------------- | -------- |
+| `markdown`  | stable   | `MARKDOWN_EXTENSIONS` defined, **not wired** (falls back to `DEFAULT_EXTENSIONS`) | TipTap   |
+| `legal`     | stable   | `LEGAL_EXTENSIONS` defined, **not wired**                | TipTap   |
+| `wiki`      | beta     | `WIKI_EXTENSIONS` defined, **not wired**                 | TipTap   |
+| `lexical`   | planned  | `LEXICAL_EXTENSIONS` **does not exist**; adapter scaffold in `src/adapters/lexicalAdapter.ts` | Lexical  |
+
+To ship one: wire the preset into the `EditorContext` map, add the sample content, and create
+the three-line `app/examples/<id>/page.tsx` route (see section 6).
+
+---
+
 ## 6. Adding a Module
 
 ### Step 1 — define the extension preset
@@ -391,12 +418,17 @@ export const TICKET_EXTENSIONS = [
 ];
 ```
 
-### Step 2 — add the id to `EditorType`
+### Step 2 — confirm `EditorType` picks the id up automatically
 
 ```ts
 // context/EditorContext.tsx
-export type EditorType = "comment" | "content" | "document" | "presentation" | "ticket";
+export type EditorType = ModuleId | "default";
 ```
+
+`ModuleId` is derived from `constants/module-registry.ts`, so the registry entry added in
+Step 4 extends the union. There is no hand-maintained string union to edit — but the preset
+map (Step 3) and `MENU_BY_TYPE` in `components/EditorMenuBar.tsx` must gain the new id or it
+falls back to the default preset/toolbar.
 
 ### Step 3 — map the id to the preset
 
@@ -512,12 +544,14 @@ These are reserved type values and design notes, not shipped work.
 
 1. Module metadata lives in `constants/module-registry.ts` and nowhere else. Never hand-edit a
    page to list modules.
-2. Module types are a string union (`EditorType`). Adding a value requires a matching entry in
-   the provider's extension map, or it will compile but fall back to the default preset.
+2. `EditorType` is `ModuleId | "default"` — derived from the registry, so adding a module id
+   never means editing a string union. The preset map (and `MENU_BY_TYPE`) still needs a
+   matching entry, or the module compiles but silently falls back to the default preset.
 3. Source files carry an `@ai-agent` JSDoc tag describing non-obvious invariants. Read the
    header comment before changing a file.
 4. Toolbar items are plain data grouped by category, not components.
-5. The link mark must be registered exactly once (`MarkdownLink` replaces the stock `Link`).
+5. The link mark must be registered exactly once (`components/extensions/MarkDownLink.ts`
+   extends the stock `Link`; registering both yields two extensions named `link`).
 6. Presets spread upward: add a widely useful extension to `DEFAULT_EXTENSIONS` rather than
    patching each tier.
 7. Docs navigation lives in `constants/docs-nav.ts`.

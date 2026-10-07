@@ -5,7 +5,7 @@
 * @coderooz
 
 # Documentation
-/docs/ @coderooz
+app/documentation/ @coderooz
 README.md @coderooz
 CHANGELOG.md @coderooz
 CONTRIBUTING.md @coderooz
@@ -17,7 +17,7 @@ LICENSE @coderooz
 package.json @coderooz
 tsconfig.json @coderooz
 next.config.ts @coderooz
-.eslintrc.json @coderooz
+eslint.config.mjs @coderooz
 .prettierrc @coderooz
 .editorconfig @coderooz
 .gitignore @coderooz
@@ -31,8 +31,13 @@ app/ @coderooz
 components/ @coderooz
 constants/ @coderooz
 context/ @coderooz
+src/ @coderooz
 lib/ @coderooz
 public/ @coderooz
+
+# Reference systems
+.workspace/PRI/ @coderooz
+.workspace/LFI/ @coderooz
 
 # CI/CD
 .github/workflows/ @coderooz

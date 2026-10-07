@@ -1,334 +1,187 @@
-<!-- @format -->
+# Editor Blocks
 
-# TipTap-Editor
+**A library of ready-to-use, drop-in editor modules for React and Next.js.**
 
-A **professional, production-ready TipTap rich-text editor showcase and reference implementation**. Built with **Next.js 16**, **React 19**, **TypeScript**, and **TipTap v3**. Features 4 editor modes, 40+ toolbar actions, bubble menus, custom extensions, and comprehensive documentation for reusable integration.
+Each module is a pre-tuned editor configuration for one job — a comment box, an article body,
+a document, a presentation — with its extension set, toolbar, and constraints already decided.
+The name is deliberate: these are blocks you place, not a single editor you configure.
 
-![TipTap Editor Preview](/public/ContentImage.png)
+Editor Blocks exists because most projects build the same rich-text editor twice — once for a
+comment field, once for a blog body — and the two implementations drift apart. It packages
+editors the way shadcn/ui packages components: a small, opinionated, readable implementation
+you own once you copy it.
 
----
+**Status:** active, pre-1.0 (`v0.3.0`). All shipped modules are powered by
+[TipTap v3](https://tiptap.dev/). The architecture is engine-agnostic by design so the
+catalogue can later include Lexical, ProseMirror, BlockNote, Slate, and Quill without changing
+the module contract.
 
-## 🚀 Features
-
-### 🧩 **Extension-Based Architecture**
-- **4 Editor Modes**: `document`, `content`, `comment`, and `default` — each with tailored extension sets
-- **Modular Extension Configuration** via `/constants/EditorExtension.ts`
-- **Composable Extension Factory** for selective feature inclusion
-
-### 🧰 **Dynamic Menu Bar & Toolbar Registry**
-- **40+ Toolbar Actions** defined declaratively in `/constants/EditorMenuOptions.ts`
-- **Feature-Registry Driven** toolbar system for reusable feature integration
-- Supports: `button`, `dropdown`, `input`, `model` (modals), `custom`
-
-### 💬 **Smart Bubble Menus (Context-Aware)**
-- **Text**: Bold, Italic, Underline, Strikethrough, Code, Link
-- **Images**: Resize (50%/75%/100%), Align (Left/Center/Right), Delete
-- **Tables**: Add/Delete Rows/Columns, Merge Cells, Toggle Borders
-- **YouTube**: Resize, Delete
-- **Registry-Based** for extensible node-type mapping
-
-### 🖼️ **Advanced Image Handling**
-- **Custom Resizable Image Node** with drag-resize handles
-- **Image Dialog**: URL, Upload, Asset Library, Dimensions
-- **Alignment & Resize Controls** via bubble menu
-
-### 🎬 **Media Embeds**
-- **YouTube Embeds** with editable parameters (autoplay, controls, privacy)
-- **Extensible** for other media providers
-
-### 🪄 **Details Block (Expandable Content)**
-- Native `<details>`/`<summary>` support with custom styling
-
-### 🧷 **Editor Context API**
-- Centralized editor instance management with real-time content tracking
-- Character count, HTML/JSON serialization, programmatic content injection
-- Mode switching with full editor reinitialization
-
-### 💾 **Import / Export**
-- **HTML**: `editor.getHTML()` / `editor.commands.setContent(html)`
-- **JSON**: `editor.getJSON()` / `editor.commands.setContent(json)`
-- **File-based** import/export via modal dialog
-
-### 📚 **Comprehensive Documentation**
-- Feature-level documentation with implementation references
-- Architecture documentation
-- Integration guides
-- Copy/adapt instructions for reusable features
-- Implementation matrix tracking
-
-### ⚙️ **Built With:**
-- **Next.js 16** (App Router, Turbopack)
-- **React 19** (Server Components, Concurrent Features)
-- **TypeScript 5** (Strict Mode)
-- **Tailwind CSS 4** (CSS Variables, @theme inline)
-- **shadcn/ui** + **Radix UI** (Accessible Components)
-- **TipTap v3.10** (Headless Editor Framework)
-- **Lucide React** (Icons)
-- **Lowlight** (Syntax Highlighting)
-- **Yjs** (Collaboration Ready)
+![Editor Blocks editor with toolbar](./public/ContentImage.png)
 
 ---
 
-## 📁 Project Structure
+## Features
 
-```
-TipTap-Editor/
-├── app/
-│   ├── page.tsx                      # Landing page with live demo
-│   ├── demo/page.tsx                 # Full playground
-│   ├── features/                     # Feature explorer & detail pages
-│   ├── comment/page.tsx              # Comment editor mode
-│   ├── content/page.tsx              # Content/blog editor mode
-│   ├── docs/page.tsx                 # Documentation editor mode
-│   ├── layout.tsx                    # Root layout + providers
-│   └── globals.css                   # Tailwind v4 + CSS variables
-├── components/
-│   ├── editor/                       # Core editor components
-│   ├── toolbar/                      # Toolbar system + registry
-│   ├── bubble-menus/                 # Bubble menus + registry
-│   ├── dialogs/                      # Modal dialogs
-│   ├── commands/                     # Command layer + registry
-│   ├── showcase/                     # Showcase UI components
-│   ├── ui/                           # shadcn/ui components
-│   ├── LiveEditorDemo.tsx            # Landing page demo
-│   └── ThemeToggle.tsx               # Dark/light toggle
-├── constants/
-│   ├── tiptap-feature-registry.ts    # Feature registry (SSOT)
-│   ├── EditorMenuOptions.ts          # Toolbar definitions
-│   └── EditorStateOptions.ts         # Type definitions
-├── context/
-│   └── EditorContext.tsx             # Global editor state
-├── editor/
-│   ├── core/                         # Editor factory + config
-│   ├── extensions/                   # Feature-based extensions
-│   ├── commands/                     # Command layer
-│   ├── state/                        # State management
-│   ├── serializers/                  # HTML/JSON/Markdown
-│   └── types/                        # Type definitions
-├── features/                         # Feature-centric implementations
-├── examples/                         # Minimal integration examples
-├── docs/                             # Documentation
-├── tests/                            # Test suite
-├── lib/
-│   └── utils.ts                      # cn() utility
-├── public/                           # Static assets
-├── .workspace/                       # Project workspace docs
-├── PROJECT_REFERENCE_INDEX.md        # PRI (AI reference)
-├── AGENTS.md                         # AI agent instructions
-├── CHANGELOG.md
-├── package.json
-└── ...
-```
+### Module catalogue
+
+- **8 registered modules** in a single source of truth
+  (`constants/module-registry.ts`) — the `/modules` page, the example pages, the documentation
+  pages, and `public/llm.txt` all derive from it
+- **4 live example routes** today: comment, content, document, presentation — each rendered
+  through one shared `ExamplePageTemplate`
+- **Per-module extension presets** — 9 presets in `constants/EditorExtension.tsx`
+  (`DEFAULT`, `COMPLEX`, `BLOG`, `DOCUMENT`, `COMMENT`, `PRESENTATION`, `MARKDOWN`, `LEGAL`,
+  `WIKI`)
+- **Per-module toolbar** — 41 declarative menu items across
+  `constants/EditorMenuOptions.ts`, dispatched by a polymorphic `ToolbarItem`
+  (buttons, dropdowns, inputs, dialog triggers)
+
+### Architecture
+
+- **Single provider** — `EditorContext` owns the one TipTap instance and swaps the extension
+  preset when the module changes; content is preserved per module
+- **Engine-agnostic contract** — every module declares its `engine`; an adapter seam
+  (`src/adapters/`) is in place for non-TipTap engines
+- **Single instance invariant** — the provider is mounted once in `app/layout.tsx`; a second
+  provider would desynchronise the toolbar
+
+### Platform
+
+- **Next.js 16** (App Router, Turbopack) · **React 19** · **TypeScript 5** (strict)
+- **Tailwind CSS 4** + **shadcn/ui** / Radix primitives
+- **TipTap v3.31** headless editor core
+- Dark/light theme, keyboard-accessible toolbar, WCAG-minded semantics
 
 ---
 
-## ⚙️ Installation & Setup
+## Modules
 
-### 1️⃣ Clone & Install
+| Module           | Status    | Engine   | Live demo                |
+| ---------------- | --------- | -------- | ------------------------ |
+| Comment Editor   | `stable`  | TipTap   | `/examples/comment`      |
+| Content Editor   | `stable`  | TipTap   | `/examples/content`      |
+| Document Editor  | `stable`  | TipTap   | `/examples/docs`         |
+| Presentation     | `beta`    | TipTap   | `/examples/presentation` |
+| Markdown Editor  | `stable`  | TipTap   | — (route pending)        |
+| Legal Editor     | `stable`  | TipTap   | — (route pending)        |
+| Wiki Editor      | `beta`    | TipTap   | — (route pending)        |
+| Lexical Editor   | `planned` | Lexical  | — (scaffold only)        |
+
+> **Known gap:** the Markdown, Legal, Wiki, and Lexical modules are registered and documented,
+> but their `/examples/*` routes are not implemented yet — their registry `href`s currently
+> 404. The Markdown/Legal/Wiki presets exist in `EditorExtension.tsx` but are not yet wired
+> into the `EditorContext` preset map (those ids fall back to `DEFAULT_EXTENSIONS`). The
+> Lexical module is a scaffold: `src/adapters/lexicalAdapter.ts` defines the adapter seam and
+> a partial implementation, and `LEXICAL_EXTENSIONS` does not exist yet.
+
+---
+
+## Quick start
+
+Requirements: **Node.js ≥ 20**, **npm ≥ 10**.
 
 ```bash
-git clone https://github.com/coderooz/TipTap-Editor.git
-cd TipTap-Editor
+git clone https://github.com/coderooz/Editor-Blocks.git
+cd Editor-Blocks
 npm install
-```
-
-### 2️⃣ Run Development Server
-
-```bash
 npm run dev
 ```
 
-Open → [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000).
 
-### 3️⃣ Build for Production
-
-```bash
-npm run build
-npm start
-```
-
-### 4️⃣ Quality Checks
+### Scripts
 
 ```bash
-npm run lint        # ESLint
-npm run typecheck   # TypeScript strict check
-npm run build       # Production build
+npm run dev        # development server (Turbopack)
+npm run build      # production build
+npm run start      # serve the production build
+npm run lint       # ESLint
+npm run typecheck  # tsc --noEmit
 ```
 
 ---
 
-## 🧩 Editor Modes
+## Routes
 
-| Mode       | Route       | Description                          | Extension Set          |
-| ---------- | ----------- | ------------------------------------ | ---------------------- |
-| `comment`  | `/comment`  | Minimal editor for comments          | `COMMENT_EXTENSIONS`   |
-| `document` | `/docs`     | Full-page editor for documents       | `DOCUMENT_EXTENSIONS`  |
-| `content`  | `/content`  | Blog/post-style rich editor          | `BLOG_EXTENSIONS`      |
-| `default`  | `/`         | Basic TipTap setup                   | `DEFAULT_EXTENSIONS`   |
+| Route                          | What it is                                              |
+| ------------------------------ | ------------------------------------------------------- |
+| `/`                            | Landing page with the live module switcher demo         |
+| `/modules`                     | Module catalogue, generated from the registry           |
+| `/examples`                    | Index of live demos                                     |
+| `/examples/{comment,content,docs,presentation}` | One demo per shipped module            |
+| `/documentation`               | Docs home (getting started, modules, API, architecture) |
+| `/llm.txt`, `/llms-full.txt`   | Machine-readable manifests for AI agents                |
 
-Switch programmatically:
+---
+
+## Project structure
+
+```
+app/                    # App Router pages (/, /modules, /examples/*, /documentation/*)
+components/
+  EditorPage.tsx        # Public mounting surface: toolbar + editing area
+  EditorMenuBar.tsx     # Toolbar: groups menu definitions, dispatches by item type
+  toolbar/ToolbarItem.tsx  # Polymorphic renderer (button/dropdown/input/dialog)
+  examples/             # ExamplePageTemplate + preview/install helpers
+  modules/              # ModulesCatalogue
+  layout/, ui/, ...     # Header/Footer and shadcn/ui primitives
+constants/
+  module-registry.ts    # SSOT: every module's id, engine, status, href, preset
+  EditorExtension.tsx   # 9 extension presets
+  EditorMenuOptions.ts  # 41 toolbar item definitions
+  sample-content.ts     # Seed HTML for each demo
+context/EditorContext.tsx  # Single provider, preset map, per-module content
+src/adapters/           # Engine adapter seam (Lexical scaffold)
+plugin/                 # Standalone npm-package scaffold (not published)
+public/                 # Static assets + llm.txt / llms-full.txt manifests
+.workspace/PRI/         # Project Reference Index (committed reference system)
+.workspace/LFI/         # Logic Flow Index (committed reference system)
+```
+
+---
+
+## Using a module
 
 ```tsx
-const { setEditorType } = useEditorContext();
-setEditorType("document");
-```
+// app/layout.tsx — mount the provider exactly once
+import { EditorProvider } from "@/context/EditorContext";
 
----
+// any page — pick the module by id
+import EditorPage from "@/components/EditorPage";
 
-## 🧠 Editor Context API
-
-```tsx
-import { useEditorContext } from "@/context/EditorContext";
-
-const { 
-  editor, 
-  editorType, 
-  setEditorType, 
-  editorContent, 
-  setEditorContent,
-  charCount 
-} = useEditorContext();
-```
-
----
-
-## 🧰 Customizing Toolbar Items
-
-Modify toolbar buttons via `/constants/EditorMenuOptions.ts`:
-
-```ts
-{
-  title: "Bold",
-  icon: Bold,
-  group: "styling",
-  type: "button",
-  isActive: (editor) => editor.isActive("bold"),
-  action: (editor) => editor.chain().focus().toggleBold().run(),
+export default function CommentsPage() {
+  return <EditorPage type="comment" initialContent="<p>Hello</p>" />;
 }
 ```
 
-**Supported Types:** `button` | `dropdown` | `input` | `model` | `custom`
+`EditorPage` resolves the extension preset and toolbar for the id internally. Read the full
+API in the [documentation](https://editor-blocks.vercel.app/documentation).
 
 ---
 
-## 🧩 Adding New Extensions
+## AI agents
 
-Register TipTap or custom extensions in `/constants/EditorExtension.ts`:
+This repository is machine-readable by intent:
 
-```ts
-import { Extension } from "@tiptap/core";
-
-export const MyExtension = Extension.create({
-  name: "myExtension",
-  addKeyboardShortcuts() {
-    return {
-      "Mod-b": () => this.editor.commands.toggleBold(),
-    };
-  },
-});
-```
-
-Then compose via the extension factory:
-
-```ts
-import { createEditorExtensions } from "@/editor/core/extensions";
-
-const extensions = createEditorExtensions({
-  features: ["basicFormatting", "links", "images", "tables"],
-});
-```
+- [`public/llm.txt`](./public/llm.txt) — canonical project map (start here)
+- [`public/llms-full.txt`](./public/llms-full.txt) — full API/usage reference
+- `.workspace/PRI/PROJECT_REFERENCE_INDEX.md` — file-level reference index
+- `.workspace/LFI/LOGIC_FLOW_INDEX.md` — behavioural flows and invariants
 
 ---
 
-## 💾 Export / Import Content
+## Contributing
 
-### Export HTML:
-```ts
-const html = editor.getHTML();
-```
-
-### Import HTML:
-```ts
-editor.commands.setContent(html);
-```
-
-### Export JSON:
-```ts
-const json = editor.getJSON();
-```
-
-### Import JSON:
-```ts
-editor.commands.setContent(json);
-```
-
----
-
-## 🧰 Developer Notes
-
-- **Node.js 20+** and **npm 10+** required
-- **TypeScript Strict Mode** enforced — no `any` in new code
-- **ESLint Flat Config** with React, TypeScript, and Tailwind rules
-- **Husky + lint-staged** for pre-commit quality gates
-- Use `useEditorContext()` for reactive state when switching editor types
-- BubbleMenus for contextual controls (resize images, format text, etc.)
-- Feature registry (`constants/tiptap-feature-registry.ts`) is the SSOT for all features
-
----
-
-## 🌐 Deployment
-
-Deploy to **Vercel** (recommended) or any Next.js-compatible platform:
+See [CONTRIBUTING.md](./CONTRIBUTING.md). Quality gates before any commit:
 
 ```bash
-vercel build
-vercel deploy
+npm run lint && npm run typecheck && npm run build
 ```
 
-**Production URL:** https://tiptap-editor.vercel.app
+## License
 
----
+[MIT](./LICENSE) © Ranit Saha (Coderooz)
 
-## 🧑‍💻 Author
-
-**Ranit Saha (Coderooz)**  
-📍 India  
-🌐 [https://coderooz.in](https://coderooz.in)  
-✉️ [contact@coderooz.in](mailto:contact@coderooz.in)  
-🐙 [https://github.com/coderooz](https://github.com/coderooz)
-
----
-
-## 🪪 License
-
-MIT License © 2025 [Coderooz](https://coderooz.in)
-
----
-
-## 📊 Project Status
-
-| Metric | Status |
-|--------|--------|
-| **Version** | 1.0.0 |
-| **TypeScript** | ✅ Strict |
-| **ESLint** | ✅ Clean |
-| **Build** | ✅ Passing |
-| **Tests** | 🚧 In Progress |
-| **Accessibility** | 🚧 Auditing |
-| **Documentation** | ✅ Comprehensive |
-| **Deployment** | ✅ Vercel |
-
----
-
-## 🤝 Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## 🔗 Links
-
-- **Live Demo:** https://tiptap-editor.vercel.app
-- **Repository:** https://github.com/coderooz/TipTap-Editor
-- **Issues:** https://github.com/coderooz/TipTap-Editor/issues
-- **Documentation:** https://github.com/coderooz/TipTap-Editor/tree/main/docs
+- Repository: https://github.com/coderooz/Editor-Blocks
+- Site: https://editor-blocks.vercel.app
+- Issues: https://github.com/coderooz/Editor-Blocks/issues
