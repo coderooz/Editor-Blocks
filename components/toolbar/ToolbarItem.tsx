@@ -8,8 +8,8 @@
  */
 
 import React from "react";
-import { Editor } from "@tiptap/react";
-import { MenuItem } from "@/constants/EditorMenuOptions";
+import type { Editor } from "@tiptap/react";
+import type { MenuItem } from "@/constants/EditorMenuOptions";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import {

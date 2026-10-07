@@ -10,7 +10,7 @@
  *            interface and registering it in EditorContext.
  */
 
-import { LexicalEditor } from "lexical";
+import type { LexicalEditor } from "lexical";
 
 export type EditorAdapter = {
   /** Check if a given mark/node type is active at the current selection. */
