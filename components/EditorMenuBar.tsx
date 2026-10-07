@@ -18,7 +18,6 @@
  *            MENU_BTN_ITEMS/COMMENT_MENU/CONTENT_MENU/DOCUMENT_MENU, cn().
  */
 
-import React from "react";
 import { useEditorContext } from "@/context/EditorContext";
 import type { EditorType } from "@/context/EditorContext";
 import {
@@ -29,7 +28,6 @@ import {
   type MenuItem,
 } from "@/constants/EditorMenuOptions";
 import { ToolbarItem } from "@/components/toolbar/ToolbarItem";
-import { cn } from "@/lib/utils";
 
 /**
  * Module id → toolbar menu array.
@@ -50,6 +48,10 @@ const MENU_BY_TYPE: Record<EditorType, MenuItem[]> = {
   content: CONTENT_MENU,
   document: DOCUMENT_MENU,
   presentation: CONTENT_MENU,
+  lexical: CONTENT_MENU,
+  markdown: CONTENT_MENU,
+  legal: CONTENT_MENU,
+  wiki: CONTENT_MENU,
   default: MENU_BTN_ITEMS,
 };
 

@@ -79,6 +79,9 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     document: "<p>Start writing your document...</p>",
     presentation: "<p>Start writing your presentation...</p>",
     lexical: "<p>Start writing a Lexical note...</p>",
+    markdown: "<p>Start writing in Markdown...</p>",
+    legal: "<p>Start writing a legal document...</p>",
+    wiki: "<p>Start writing a wiki note...</p>",
     default: "<p>Start writing...</p>",
   });
 
@@ -99,8 +102,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       comment: COMMENT_EXTENSIONS,
       default: DEFAULT_EXTENSIONS,
       presentation: PRESENTATION_EXTENSIONS,
-      // `lexical` is intentionally absent from this map; it falls back to
-      // DEFAULT_EXTENSIONS until Lexical-specific extensions are wired via the adapter.
+      lexical: DEFAULT_EXTENSIONS,
+      markdown: DEFAULT_EXTENSIONS,
+      legal: DEFAULT_EXTENSIONS,
+      wiki: DEFAULT_EXTENSIONS,
     } as const;
 
     return [
