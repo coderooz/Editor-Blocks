@@ -93,7 +93,7 @@
     "@types/node": "^26",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@typescript-eslint/eslint-plugin": "^8.71.0",
+    "@typescript-eslint/eslint-plugin": "^8.71.2",
     "@typescript-eslint/parser": "^8.71.0",
     "baseline-browser-mapping": "^2.11.26",
     "eslint": "^9.39.5",
